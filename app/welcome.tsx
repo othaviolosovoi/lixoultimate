@@ -38,6 +38,7 @@ export default function Welcome() {
             </View>
             <View className="gap-6">
               <TouchableOpacity
+                activeOpacity={0.8}
                 className="mb-4 rounded-full overflow-hidden"
                 onPress={() => router.push("/signin")}
               >
@@ -67,6 +68,7 @@ export default function Welcome() {
                 </LinearGradient>
               </TouchableOpacity>
               <TouchableOpacity
+                activeOpacity={0.8}
                 className="rounded-full overflow-hidden"
                 onPress={() => router.push("/register")}
               >
