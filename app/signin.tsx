@@ -41,7 +41,7 @@ const signin = () => {
       <SafeAreaView className="flex-1">
         <View className="flex-[1] bg-transparent">
           <Ionicons
-            onPress={() => router.back()}
+            onPress={() => router.push("/welcome")}
             className="ml-5 mt-10"
             name="chevron-back"
             size={28}
