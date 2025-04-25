@@ -15,27 +15,32 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image } from "expo-image";
 
 export default function Register() {
-  const { session, register } = useAuth();
+  const { session, register, loading } = useAuth();
   const router = useRouter();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isRegistering, setIsRegistering] = useState(false);
 
   const handleRegister = async () => {
     setError(null);
-    // Validate password match
-
+    setIsRegistering(true);
     try {
       await register({ name, email, password });
+
       router.push("/");
     } catch (err: any) {
       setError(err.message);
+    } finally {
+      setIsRegistering(false);
     }
   };
 
-  if (session) return <Redirect href="/" />;
+  if (!isRegistering && session) {
+    return <Redirect href="/" />;
+  }
 
   return (
     <LinearGradient
@@ -144,11 +149,7 @@ export default function Register() {
               activeOpacity={0.8}
               className="bg-black border border-white rounded-lg flex-row items-center justify-center gap-3 mt-2"
             >
-              <Image
-                style={{ width: 20, height: 20 }}
-                source={require("../assets/images/logo_google.png")}
-                contentFit="cover"
-              />
+              <Ionicons name="logo-google" size={24} color="white" />
               <Text className="text-white text-xl py-4">
                 Entrar com o Google
               </Text>

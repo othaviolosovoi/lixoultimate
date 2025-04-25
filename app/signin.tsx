@@ -24,7 +24,7 @@ const signin = () => {
   const [error, setError] = useState(null);
 
   const handleSubmit = async () => {
-    setError(null); // Clear previous errors
+    setError(null);
     try {
       await signin({ email, password });
     } catch (err: any) {
@@ -154,11 +154,7 @@ const signin = () => {
               activeOpacity={0.8}
               className="bg-black border border-white rounded-lg flex-row items-center justify-center gap-3  mt-2"
             >
-              <Image
-                style={{ width: 20, height: 20 }}
-                source={require("../assets/images/logo_google.png")}
-                contentFit="cover"
-              />
+              <Ionicons name="logo-google" size={24} color="white" />
               <Text className="text-white  text-xl py-4 ">
                 Entrar com o Google
               </Text>

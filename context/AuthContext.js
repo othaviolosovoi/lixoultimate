@@ -9,6 +9,7 @@ const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
+  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
 
   useEffect(() => {
     init();
@@ -35,14 +36,13 @@ const AuthProvider = ({ children }) => {
       setSession(null);
     }
     setLoading(false);
+    setShowLoadingScreen(false);
   };
 
   const register = async ({ name, email, password }) => {
     setLoading(true);
     try {
-      // Create a new user account
       await account.create(ID.unique(), email, password, name);
-      // Automatically sign in the user after registration
       const responseSession = await account.createEmailPasswordSession(
         email,
         password
@@ -100,10 +100,22 @@ const AuthProvider = ({ children }) => {
     setLoading(false);
   };
 
-  const contextData = { session, user, signin, signout, register };
+  const resetPassword = async (email) => {
+    setLoading(true);
+    try {
+      await account.createRecovery(email, "https://example.com/reset-password");
+    } catch (error) {
+      console.log("Reset password error:", error.message);
+      throw new Error("Erro ao enviar email de recuperação. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const contextData = { session, user, signin, signout, register, loading };
   return (
     <AuthContext.Provider value={contextData}>
-      {loading ? (
+      {loading && showLoadingScreen ? (
         <SafeAreaView>
           <Text className="text-5xl">Loading..</Text>
         </SafeAreaView>
