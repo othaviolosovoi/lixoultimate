@@ -5,8 +5,8 @@ import {
   TextInput,
   Text,
   TouchableOpacity,
+  Image,
 } from "react-native";
-import { Image } from "expo-image";
 import MaskedView from "@react-native-masked-view/masked-view";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
@@ -38,6 +38,13 @@ const signin = () => {
       colors={["#45BF55", "#008D80", "#000000"]}
       className="flex-1"
     >
+      <View className="absolute z-0 w-full mt-14 flex justify-center items-center ">
+        <Image
+          source={require("../assets/images/logo_no_bg.png")}
+          className="w-28 h-28"
+        />
+        <Text className="font-black text-3xl mt-[-8px]">Vetiver</Text>
+      </View>
       <SafeAreaView className="flex-1">
         <View className="flex-[1] bg-transparent">
           <Ionicons
@@ -45,7 +52,7 @@ const signin = () => {
             className="ml-5 mt-10"
             name="chevron-back"
             size={28}
-            color="white"
+            color="black"
           />
         </View>
         <View

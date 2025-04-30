@@ -5,14 +5,13 @@ import {
   TextInput,
   Text,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Redirect, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "@expo/vector-icons/Ionicons";
-
-import { Image } from "expo-image";
 
 export default function Register() {
   const { session, register, loading } = useAuth();
@@ -47,6 +46,13 @@ export default function Register() {
       colors={["#45BF55", "#008D80", "#000000"]}
       className="flex-1"
     >
+      <View className="absolute z-0 w-full mt-14 flex justify-center items-center ">
+        <Image
+          source={require("../assets/images/logo_no_bg.png")}
+          className="w-28 h-28"
+        />
+        <Text className="font-black text-3xl mt-[-8px]">Vetiver</Text>
+      </View>
       <SafeAreaView className="flex-1">
         <View className="flex-[1] bg-transparent">
           <Ionicons
@@ -54,7 +60,7 @@ export default function Register() {
             className="ml-5 mt-10"
             name="chevron-back"
             size={28}
-            color="white"
+            color="black"
           />
         </View>
         <View
