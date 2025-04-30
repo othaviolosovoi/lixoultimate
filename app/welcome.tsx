@@ -1,5 +1,5 @@
 import "./globals.css";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Redirect, useRouter } from "expo-router";
 import { useAuth } from "../context/AuthContext";
@@ -18,6 +18,12 @@ export default function Welcome() {
         colors={["#45BF55", "#008D80", "#000000"]}
         className="flex-1"
       >
+        <View className="absolute z-0 w-full mt-14 flex justify-center items-center">
+          <Image
+            source={require("../assets/images/logo_no_bg.png")}
+            className="w-56 h-56"
+          />
+        </View>
         <SafeAreaView className="flex-1" edges={["bottom"]}>
           <View className="flex-[1] bg-transparent" />
           <View
@@ -29,7 +35,7 @@ export default function Welcome() {
           >
             <View className="gap-4">
               <Text className="text-white text-4xl font-black text-center mb-4">
-                Vetiverde
+                Vetiver
               </Text>
               <Text className="text-white text-lg text-center mb-8">
                 Reporte resíduos descartados incorretamente e ajude a tornar sua
