@@ -1,7 +1,10 @@
 import { useContext, createContext, useState, useEffect } from "react";
-import { Text, SafeAreaView } from "react-native";
+import { Text, SafeAreaView, View } from "react-native";
 import { account } from "../lib/appwriteConfig.js";
 import { ID } from "react-native-appwrite";
+import * as Linking from "expo-linking";
+import { openAuthSessionAsync } from "expo-web-browser";
+import { OAuthProvider } from "react-native-appwrite";
 
 const AuthContext = createContext();
 
@@ -88,6 +91,50 @@ const AuthProvider = ({ children }) => {
     }
   };
 
+  const googleLogin = async () => {
+    setLoading(true);
+    try {
+      const redirectUri = Linking.createURL("/");
+
+      const response = await account.createOAuth2Token(
+        OAuthProvider.Google,
+        redirectUri
+      );
+
+      if (!response) throw new Error("Failed to login");
+
+      const browserResult = await openAuthSessionAsync(
+        response.toString(),
+        redirectUri
+      );
+
+      if (browserResult.type !== "success") {
+        throw new Error("Failed to login with Google");
+      }
+
+      const url = new URL(browserResult.url);
+      const secret = url.searchParams.get("secret")?.toString();
+      const userId = url.searchParams.get("userId")?.toString();
+
+      if (!secret || !userId) {
+        throw new Error("Failed to retrieve secret or userId from URL");
+      }
+
+      const session = await account.createSession(userId, secret);
+
+      if (!session) throw new Error("Failed to create session");
+
+      const responseUser = await account.get();
+      setUser(responseUser);
+      setSession(session);
+    } catch (error) {
+      console.log("Google login error:", error.message);
+      throw new Error("Erro ao fazer login com Google. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const signout = async () => {
     setLoading(true);
     try {
@@ -112,12 +159,23 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const contextData = { session, user, signin, signout, register, loading };
+  const contextData = {
+    session,
+    user,
+    signin,
+    signout,
+    register,
+    googleLogin,
+    loading,
+  };
+
   return (
     <AuthContext.Provider value={contextData}>
       {loading && showLoadingScreen ? (
         <SafeAreaView>
-          <Text className="text-5xl">Loading..</Text>
+          <View className="flex-1 justify-center items-center bg-black">
+            <Text className="text-5xl">Carregando..</Text>
+          </View>
         </SafeAreaView>
       ) : (
         children

@@ -34,10 +34,10 @@ export default function Welcome() {
             }}
           >
             <View className="gap-4">
-              <Text className="text-white text-4xl font-black text-center mb-4">
+              <Text className="text-white text-4xl text-center mb-4 font-poppinsBold">
                 Vetiver
               </Text>
-              <Text className="text-white text-lg text-center mb-8">
+              <Text className="text-white text-xl text-center mb-8 font-nunito">
                 Reporte resíduos descartados incorretamente e ajude a tornar sua
                 cidade mais limpa!
               </Text>
@@ -58,7 +58,7 @@ export default function Welcome() {
                   <View className="bg-black rounded-full py-4">
                     <MaskedView
                       maskElement={
-                        <Text className="text-lg font-black text-center">
+                        <Text className="text-lg font-poppinsBold text-center">
                           ENTRAR
                         </Text>
                       }
@@ -85,7 +85,7 @@ export default function Welcome() {
                   style={{ borderRadius: 9999 }}
                   className="py-4"
                 >
-                  <Text className="text-black text-lg font-black text-center">
+                  <Text className="text-black text-lg font-poppinsBold text-center">
                     REGISTRAR
                   </Text>
                 </LinearGradient>

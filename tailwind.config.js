@@ -21,7 +21,14 @@ module.exports = {
         secondary: "#FBBF24",
       },
       fontFamily: {
-        sans: ["Inter", "sans-serif"],
+        poppins: ['Poppins-Regular', 'sans-serif'],
+        'poppinsBold': ['Poppins-Bold', 'sans-serif'],
+        'poppinsBlack': ['Poppins-Black', 'sans-serif'],
+        'nunito': ['Nunito-Regular', 'sans-serif'],
+        'nunitoBold': ['Nunito-Bold', 'sans-serif'],
+        'nunitoBlack': ['Nunito-Black', 'sans-serif'],
+        'nunitoLight': ['Nunito-Light', 'sans-serif'],
+        'nunitoMedium': ['Nunito-Medium', 'sans-serif']
       },
     },
   },

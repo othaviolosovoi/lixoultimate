@@ -17,7 +17,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 const signin = () => {
   const router = useRouter();
-  const { session, signin } = useAuth();
+  const { session, signin, googleLogin } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,6 +27,15 @@ const signin = () => {
     setError(null);
     try {
       await signin({ email, password });
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError(null);
+    try {
+      await googleLogin();
     } catch (err: any) {
       setError(err.message);
     }
@@ -43,7 +52,7 @@ const signin = () => {
           source={require("../assets/images/logo_no_bg.png")}
           className="w-28 h-28"
         />
-        <Text className="font-black text-3xl mt-[-8px]">Vetiver</Text>
+        <Text className="font-poppinsBold text-3xl mt-[-8px]">Vetiver</Text>
       </View>
       <SafeAreaView className="flex-1">
         <View className="flex-[1] bg-transparent">
@@ -64,10 +73,10 @@ const signin = () => {
         >
           <View>
             <View className="justify-evenly gap-4 mb-8">
-              <Text className="text-4xl text-white text-center font-black">
+              <Text className="text-4xl text-white text-center font-poppinsBold">
                 Bem vindo de volta
               </Text>
-              <Text className="text-lg text-white text-center">
+              <Text className="font-nunito text-xl text-white text-center">
                 Entre na sua conta
               </Text>
             </View>
@@ -77,7 +86,7 @@ const signin = () => {
                 <TextInput
                   placeholder="Email"
                   placeholderTextColor="#9CA3AF"
-                  className="flex-1 text-gray-400 text-xl ml-2"
+                  className="flex-1 font-nunitoBold text-gray-400 text-xl ml-2"
                   value={email}
                   onChangeText={(text) => setEmail(text)}
                 />
@@ -91,7 +100,7 @@ const signin = () => {
                 <TextInput
                   placeholder="Senha"
                   placeholderTextColor="#9CA3AF"
-                  className="flex-1 text-gray-400 text-xl ml-2"
+                  className="font-nunitoBold flex-1 text-gray-400 text-xl ml-2"
                   value={password}
                   onChangeText={(text) => setPassword(text)}
                   secureTextEntry
@@ -102,7 +111,7 @@ const signin = () => {
                 <MaskedView
                   maskElement={
                     <Text
-                      className="text-lg font-bold "
+                      className="font-nunito text-xl"
                       style={{ textAlign: "right" }}
                     >
                       Esqueci minha senha
@@ -136,16 +145,16 @@ const signin = () => {
                 style={{ borderRadius: 9999 }}
                 className="py-4"
               >
-                <Text className="text-black text-xl font-black text-center p-1">
+                <Text className="text-xl font-poppinsBold text-center p-1">
                   ENTRAR
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
             <View className="mt-4">
-              <Text className="text-gray-400 text-center text-lg">
+              <Text className="font-nunito text-lg text-gray-400 text-center">
                 Não tem uma conta?{" "}
                 <Text
-                  className="text-green-500 font-bold"
+                  className="font-nunitoBold text-lg text-green-500"
                   onPress={() => router.push("/register")}
                 >
                   Registrar
@@ -154,15 +163,16 @@ const signin = () => {
             </View>
             <View className="flex-row items-center my-5">
               <View className="flex-1 h-[1px] bg-white" />
-              <Text className="text-white mx-4 font-black">OU</Text>
+              <Text className="font-nunitoBlack text-white mx-4">OU</Text>
               <View className="flex-1 h-[1px] bg-white" />
             </View>
             <TouchableOpacity
+              onPress={handleGoogleLogin}
               activeOpacity={0.8}
               className="bg-black border border-white rounded-lg flex-row items-center justify-center gap-3  mt-2"
             >
               <Ionicons name="logo-google" size={24} color="white" />
-              <Text className="text-white  text-xl py-4 ">
+              <Text className="font-poppins text-white text-xl py-4 ">
                 Entrar com o Google
               </Text>
             </TouchableOpacity>

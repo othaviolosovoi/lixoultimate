@@ -14,7 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 export default function Register() {
-  const { session, register, loading } = useAuth();
+  const { session, register, loading, googleLogin } = useAuth();
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -22,6 +22,15 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
+
+  const handleGoogleLogin = async () => {
+    setError(null);
+    try {
+      await googleLogin();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
 
   const handleRegister = async () => {
     setError(null);
@@ -51,7 +60,7 @@ export default function Register() {
           source={require("../assets/images/logo_no_bg.png")}
           className="w-28 h-28"
         />
-        <Text className="font-black text-3xl mt-[-8px]">Vetiver</Text>
+        <Text className="font-poppinsBold text-3xl mt-[-8px]">Vetiver</Text>
       </View>
       <SafeAreaView className="flex-1">
         <View className="flex-[1] bg-transparent">
@@ -72,10 +81,10 @@ export default function Register() {
         >
           <View>
             <View className="justify-evenly gap-4 mb-8">
-              <Text className="text-4xl text-white text-center font-black">
+              <Text className="font-poppinsBold text-4xl text-white text-center">
                 Registrar
               </Text>
-              <Text className="text-lg text-white text-center">
+              <Text className="font-nunito text-xl text-white text-center">
                 Crie sua conta
               </Text>
               <View className="flex-row items-center bg-[#262626] rounded-lg p-3 mt-3">
@@ -83,7 +92,7 @@ export default function Register() {
                 <TextInput
                   placeholder="Nome"
                   placeholderTextColor="#9CA3AF"
-                  className="flex-1 text-gray-400 text-xl ml-2"
+                  className="font-nunitoBold flex-1 text-gray-400 text-xl ml-2"
                   value={name}
                   onChangeText={(text) => setName(text)}
                 />
@@ -93,7 +102,7 @@ export default function Register() {
                 <TextInput
                   placeholder="Email"
                   placeholderTextColor="#9CA3AF"
-                  className="flex-1 text-gray-400 text-xl ml-2"
+                  className="font-nunitoBold flex-1 text-gray-400 text-xl ml-2"
                   value={email}
                   onChangeText={(text) => setEmail(text)}
                 />
@@ -107,7 +116,7 @@ export default function Register() {
                 <TextInput
                   placeholder="Senha"
                   placeholderTextColor="#9CA3AF"
-                  className="flex-1 text-gray-400 text-xl ml-2"
+                  className="font-nunitoBold flex-1 text-gray-400 text-xl ml-2"
                   value={password}
                   onChangeText={(text) => setPassword(text)}
                   secureTextEntry
@@ -130,16 +139,16 @@ export default function Register() {
                 style={{ borderRadius: 9999 }}
                 className="py-4"
               >
-                <Text className="text-black text-xl font-black text-center p-1">
+                <Text className="font-poppinsBold text-xl text-center p-1">
                   REGISTRAR
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
             <View className="mt-4">
-              <Text className="text-gray-400 text-center text-lg">
+              <Text className="font-nunito text-lg text-gray-400 text-center">
                 Já possui uma conta?{" "}
                 <Text
-                  className="text-green-500 font-bold"
+                  className="font-nunitoBold text-lg text-green-500"
                   onPress={() => router.push("/signin")}
                 >
                   Entrar
@@ -148,15 +157,16 @@ export default function Register() {
             </View>
             <View className="flex-row items-center my-5">
               <View className="flex-1 h-[1px] bg-white" />
-              <Text className="text-white mx-4 font-black">OU</Text>
+              <Text className="font-nunitoBlack text-white mx-4">OU</Text>
               <View className="flex-1 h-[1px] bg-white" />
             </View>
             <TouchableOpacity
+              onPress={handleGoogleLogin}
               activeOpacity={0.8}
               className="bg-black border border-white rounded-lg flex-row items-center justify-center gap-3 mt-2"
             >
               <Ionicons name="logo-google" size={24} color="white" />
-              <Text className="text-white text-xl py-4">
+              <Text className="font-poppins text-white text-xl py-4">
                 Entrar com o Google
               </Text>
             </TouchableOpacity>
