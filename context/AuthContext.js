@@ -150,10 +150,25 @@ const AuthProvider = ({ children }) => {
   const resetPassword = async (email) => {
     setLoading(true);
     try {
-      await account.createRecovery(email, "https://example.com/reset-password");
+      const redirectUrl = "lixoultimate://recover";
+      console.log(
+        "Sending recovery email to:",
+        email,
+        "with redirect:",
+        redirectUrl
+      );
+      await account.createRecovery(email, redirectUrl);
+      return "Email de recuperação enviado com sucesso! Verifique sua caixa de entrada.";
     } catch (error) {
-      console.log("Reset password error:", error.message);
-      throw new Error("Erro ao enviar email de recuperação. Tente novamente.");
+      console.log("Reset password error:", error.message, error.code);
+      let errorMessage =
+        "Erro ao enviar email de recuperação. Tente novamente.";
+      if (error.code === 400) {
+        errorMessage = "Email inválido. Verifique o endereço de email.";
+      } else if (error.code === 429) {
+        errorMessage = "Muitas tentativas. Tente novamente mais tarde.";
+      }
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -166,6 +181,7 @@ const AuthProvider = ({ children }) => {
     signout,
     register,
     googleLogin,
+    resetPassword,
     loading,
   };
 

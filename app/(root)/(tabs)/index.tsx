@@ -1,6 +1,6 @@
-import "../globals.css";
+import "../../globals.css";
 import { Text, View, SafeAreaView, TouchableOpacity } from "react-native";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 import { Redirect } from "expo-router";
 
 export default function Index() {
@@ -8,7 +8,7 @@ export default function Index() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 justify-center items-center">
+      <SafeAreaView className="flex-1 justify-center items-center bg-slate-800">
         <Text className="text-2xl">Carregando...</Text>
       </SafeAreaView>
     );

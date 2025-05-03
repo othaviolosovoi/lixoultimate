@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo_no_bg.png",
-    "scheme": "lixo_ultimate",
+    "scheme": "lixoultimate",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -15,7 +15,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo_no_bg.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.lixoultimate.app"
     },
     "web": {
       "bundler": "metro",

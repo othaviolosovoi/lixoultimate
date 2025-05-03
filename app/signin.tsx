@@ -17,11 +17,12 @@ import { LinearGradient } from "expo-linear-gradient";
 
 const signin = () => {
   const router = useRouter();
-  const { session, signin, googleLogin } = useAuth();
+  const { session, signin, googleLogin, resetPassword } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   const handleSubmit = async () => {
     setError(null);
@@ -36,6 +37,21 @@ const signin = () => {
     setError(null);
     try {
       await googleLogin();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    setError(null);
+    setSuccessMessage(null);
+    if (!email) {
+      setError("Por favor, insira seu email primeiro.");
+      return;
+    }
+    try {
+      const message = await resetPassword(email);
+      setSuccessMessage(message);
     } catch (err: any) {
       setError(err.message);
     }
@@ -108,23 +124,25 @@ const signin = () => {
               </View>
 
               <View>
-                <MaskedView
-                  maskElement={
-                    <Text
-                      className="font-nunito text-xl"
-                      style={{ textAlign: "right" }}
-                    >
-                      Esqueci minha senha
-                    </Text>
-                  }
-                >
-                  <LinearGradient
-                    colors={["#45BF55", "#008D80"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={{ height: 24 }}
-                  />
-                </MaskedView>
+                <TouchableOpacity onPress={handleResetPassword}>
+                  <MaskedView
+                    maskElement={
+                      <Text
+                        className="font-nunito text-xl"
+                        style={{ textAlign: "right" }}
+                      >
+                        Esqueci minha senha
+                      </Text>
+                    }
+                  >
+                    <LinearGradient
+                      colors={["#45BF55", "#008D80"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={{ height: 24 }}
+                    />
+                  </MaskedView>
+                </TouchableOpacity>
               </View>
             </View>
 
