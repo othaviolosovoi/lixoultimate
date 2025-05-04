@@ -20,8 +20,8 @@ const TabIcon = ({
   return (
     <View
       className={`flex flex-row w-full flex-1 min-w-[124px] min-h-[68px] rounded-full justify-center items-center mt-9 overflow-hidden ${
-        focused && title === "Reportar" ? "pl-2" : ""
-      } ${focused && title === "Ajuda" ? "pr-2" : ""}`}
+        focused && title === "Reportar" ? "ml-8" : ""
+      } ${focused && title === "Ajuda" ? "mr-8" : ""}`}
     >
       {focused ? (
         <LinearGradient

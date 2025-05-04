@@ -26,7 +26,6 @@ export default function RootLayout() {
   if (!fontsLoaded) {
     return null;
   }
-  
 
   return (
     <>
