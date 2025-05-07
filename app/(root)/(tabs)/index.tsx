@@ -17,6 +17,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { Image } from "expo-image";
+import Preview from "../preview";
 
 import { useAuth } from "../../../context/AuthContext";
 import { Redirect } from "expo-router";
@@ -72,14 +73,7 @@ export default function Index() {
   };
 
   const renderPicture = () => {
-    return (
-      <View>
-        {uri && (
-          <Image source={{ uri }} style={{ width: 300, aspectRatio: 1 }} />
-        )}
-        <Button onPress={() => setUri(null)} title="Take another picture" />
-      </View>
-    );
+    return uri ? <Preview uri={uri} onReset={() => setUri(null)} /> : null;
   };
 
   if (loading) {
