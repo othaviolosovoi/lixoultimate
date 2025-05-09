@@ -1,9 +1,4 @@
-import {
-  CameraMode,
-  CameraType,
-  CameraView,
-  useCameraPermissions,
-} from "expo-camera";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRef, useState } from "react";
 
 import "../../globals.css";
@@ -12,20 +7,18 @@ import {
   View,
   SafeAreaView,
   TouchableOpacity,
-  Button,
   Pressable,
   StyleSheet,
-  Image,
 } from "react-native";
 import Preview from "../preview";
+
+import * as ImagePicker from "expo-image-picker";
+import * as MediaLibrary from "expo-media-library";
 
 import { useAuth } from "../../../context/AuthContext";
 import { Redirect, router } from "expo-router";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import Feather from "@expo/vector-icons/Feather";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import MaskedView from "@react-native-masked-view/masked-view";
-import { LinearGradient } from "expo-linear-gradient";
 import Header from "../../components/header";
 import Permission from "../../components/permission";
 
@@ -34,19 +27,19 @@ export default function Index() {
   const [permission, requestPermission] = useCameraPermissions();
   const ref = useRef<CameraView>(null);
   const [uri, setUri] = useState<string | null>(null);
+  const [image, setImage] = useState<string | null>(null);
 
   if (!permission) {
     return null;
   }
 
   if (!permission.granted) {
-    <Permission requestPermission={requestPermission} />;
+    return <Permission requestPermission={requestPermission} />;
   }
 
   if (loading) {
     return (
       <SafeAreaView className="flex-1 justify-center items-center bg-[#0d0d0d]">
-        {/* make a loading spinner */}
         <View className="w-16 h-16 rounded-full border-4 border-t-4 border-t-[#008D80] border-[#0d0d0d] animate-spin" />
         <Text className="text-white font-nunitoBold text-2xl mt-4">
           Carregando...
@@ -65,7 +58,70 @@ export default function Index() {
   };
 
   const renderPicture = () => {
-    return uri ? <Preview uri={uri} onReset={() => setUri(null)} /> : null;
+    const source = uri || image;
+    return source ? (
+      <Preview
+        uri={source}
+        onReset={() => {
+          setUri(null);
+          setImage(null);
+        }}
+      />
+    ) : null;
+  };
+
+  const pickImage = async () => {
+    // Request permission to access media library
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+    if (status !== "granted") {
+      console.warn("Permission to access media library denied");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+      exif: true, // Still needed for assetId
+      allowsMultipleSelection: false,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const pickedImage = result.assets[0];
+      console.log(result.assets);
+      setImage(pickedImage.uri);
+
+      // Try to get full EXIF data from MediaLibrary
+      if (pickedImage.assetId) {
+        try {
+          const assetInfo = await MediaLibrary.getAssetInfoAsync(
+            pickedImage.assetId
+          );
+          const fullExif = assetInfo.exif as {
+            GPSLatitude?: number;
+            GPSLongitude?: number;
+          };
+          console.log("Full EXIF from MediaLibrary:", fullExif);
+
+          if (
+            fullExif?.GPSLatitude !== undefined &&
+            fullExif?.GPSLongitude !== undefined
+          ) {
+            console.log("✅ GPS Data Found:");
+            console.log("Latitude:", fullExif.GPSLatitude);
+            console.log("Longitude:", fullExif.GPSLongitude);
+          } else {
+            console.log("⚠️ No GPS data found in EXIF.");
+          }
+        } catch (err) {
+          console.error("Error fetching EXIF from MediaLibrary:", err);
+        }
+      } else {
+        console.warn("No assetId found, cannot fetch EXIF from MediaLibrary.");
+      }
+    } else {
+      console.log("Image picker canceled or no assets found.");
+    }
   };
 
   const renderCamera = () => {
@@ -92,8 +148,11 @@ export default function Index() {
             <MaterialIcons name="question-mark" size={24} color="white" />
           </TouchableOpacity>
           <View className="absolute bottom-0 left-0 w-full">
-            <Pressable className="absolute bottom-32 left-8">
-              {<AntDesign name="picture" size={32} color="white" />}
+            <Pressable
+              onPress={pickImage}
+              className="absolute bottom-32 left-8"
+            >
+              {<MaterialIcons name="photo-library" size={32} color="white" />}
             </Pressable>
 
             <Pressable
@@ -121,7 +180,7 @@ export default function Index() {
       className="flex-1 bg-[#0d0d0d] items-center
      justify-center"
     >
-      {uri ? renderPicture() : renderCamera()}
+      {uri || image ? renderPicture() : renderCamera()}
     </SafeAreaView>
   );
 }

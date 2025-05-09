@@ -95,6 +95,7 @@ const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const redirectUri = Linking.createURL("/");
+      console.log("Redirect URI:", redirectUri);
 
       const response = await account.createOAuth2Token(
         OAuthProvider.Google,

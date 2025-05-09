@@ -9,14 +9,25 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Permitir $(PRODUCT_NAME) a acessar suas fotos?",
+        "NSLocationWhenInUseUsageDescription": "This app needs access to your location as a fallback for images without GPS data."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo_no_bg.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.lixoultimate.app"
+      "package": "com.lixoultimate.app",
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "ACCESS_MEDIA_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -52,12 +63,26 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera."
+          "cameraPermission": "Permitir $(PRODUCT_NAME) a acessar sua câmera?."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permitir $(PRODUCT_NAME) a acessar suas fotos?"
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "d3d44083-4729-4c4f-a1d9-3f135adaad2f"
+      }
     }
   }
 }
