@@ -4,6 +4,8 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useAuth } from "../../context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
+import Header from "../components/header";
+import { Redirect, router } from "expo-router";
 
 export default function Preview({
   uri,
@@ -12,19 +14,22 @@ export default function Preview({
   uri: string;
   onReset: () => void;
 }) {
-  const { user } = useAuth();
+  const { user, signout } = useAuth();
   const { width, height } = Dimensions.get("window");
 
   return (
     <>
-      <View className="flex-row justify-between items-center w-full px-4 h-24 bg-[#0d0d0d]">
-        <View>
-          <Text className="text-white">{user?.name}</Text>
-        </View>
-        <View>
-          <Text className="text-white">LixoCoins</Text>
-        </View>
-      </View>
+      <Header
+        user={user}
+        path={require("../../assets/images/coin_icon.png")}
+        onProfilePress={() => {
+          router.push("/profile");
+        }}
+        onLogoutPress={signout}
+        onLixoCoinPress={() => {
+          router.push("/lixo-coins");
+        }}
+      />
       <View style={{ flex: 1, position: "relative" }}>
         {uri && (
           <Image

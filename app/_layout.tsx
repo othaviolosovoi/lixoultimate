@@ -4,6 +4,7 @@ import { AuthProvider } from "../context/AuthContext";
 import { StatusBar } from "react-native";
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -28,11 +29,11 @@ export default function RootLayout() {
   }
 
   return (
-    <>
-      <StatusBar hidden={true} />
+    <SafeAreaView style={{ flex: 1 }}>
+      <StatusBar barStyle="light-content" backgroundColor="#0d0d0d" />
       <AuthProvider>
         <Slot />
       </AuthProvider>
-    </>
+    </SafeAreaView>
   );
 }
