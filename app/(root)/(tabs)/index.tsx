@@ -1,6 +1,3 @@
-import { CameraView, useCameraPermissions } from "expo-camera";
-import { useRef, useState } from "react";
-
 import "../../globals.css";
 import {
   Text,
@@ -11,13 +8,12 @@ import {
   StyleSheet,
 } from "react-native";
 import Preview from "../preview";
-
+import { CameraView, useCameraPermissions } from "expo-camera";
+import { useRef, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
-
 import { useAuth } from "../../../context/AuthContext";
 import { Redirect, router } from "expo-router";
-import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Header from "../../components/header";
 import Permission from "../../components/permission";

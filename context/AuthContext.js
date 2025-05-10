@@ -91,11 +91,64 @@ const AuthProvider = ({ children }) => {
     }
   };
 
+  // const googleLogin = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const redirectUri = Linking.createURL("/");
+  //     console.log("Redirect URI:", redirectUri);
+
+  //     const response = await account.createOAuth2Token(
+  //       OAuthProvider.Google,
+  //       redirectUri
+  //     );
+
+  //     if (!response) throw new Error("Failed to login");
+
+  //     const browserResult = await openAuthSessionAsync(
+  //       response.toString(),
+  //       redirectUri
+  //     );
+
+  //     if (browserResult.type !== "success") {
+  //       throw new Error("Failed to login with Google");
+  //     }
+
+  //     const url = new URL(browserResult.url);
+  //     const secret = url.searchParams.get("secret")?.toString();
+  //     const userId = url.searchParams.get("userId")?.toString();
+
+  //     if (!secret || !userId) {
+  //       throw new Error("Failed to retrieve secret or userId from URL");
+  //     }
+
+  //     const session = await account.createSession(userId, secret);
+
+  //     if (!session) throw new Error("Failed to create session");
+
+  //     const responseUser = await account.get();
+  //     setUser(responseUser);
+  //     setSession(session);
+  //   } catch (error) {
+  //     console.log("Google login error:", error.message);
+  //     throw new Error("Erro ao fazer login com Google. Tente novamente.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const googleLogin = async () => {
     setLoading(true);
     try {
-      const redirectUri = Linking.createURL("/");
-      console.log("Redirect URI:", redirectUri);
+      let redirectUri = Linking.createURL("/");
+      console.log("Initial Redirect URI:", redirectUri);
+
+      if (!redirectUri.includes("localhost")) {
+        redirectUri = redirectUri.replace(
+          "lixoultimate:///",
+          "lixoultimate://localhost/"
+        );
+      }
+      console.log("Modified Redirect URI:", redirectUri);
 
       const response = await account.createOAuth2Token(
         OAuthProvider.Google,
@@ -121,10 +174,12 @@ const AuthProvider = ({ children }) => {
         throw new Error("Failed to retrieve secret or userId from URL");
       }
 
+      // Create a session with the retrieved userId and secret
       const session = await account.createSession(userId, secret);
 
       if (!session) throw new Error("Failed to create session");
 
+      // Fetch the authenticated user
       const responseUser = await account.get();
       setUser(responseUser);
       setSession(session);
