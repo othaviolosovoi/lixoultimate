@@ -52,6 +52,7 @@ export default function Index() {
   }
 
   const renderCamera = () => {
+    console.log(user.$id);
     return (
       <>
         <Header
@@ -76,14 +77,18 @@ export default function Index() {
           </TouchableOpacity>
           <View className="absolute bottom-0 left-0 w-full">
             <Pressable
-              onPress={() => pickImage(setImage, setJsonResult)}
+              onPress={() =>
+                pickImage(setImage, setJsonResult, user?.$id || "")
+              }
               className="absolute bottom-32 left-8"
             >
               {<MaterialIcons name="photo-library" size={32} color="white" />}
             </Pressable>
 
             <Pressable
-              onPress={() => takePicture(ref, setUri, setJsonResult)}
+              onPress={() =>
+                takePicture(ref, setUri, setJsonResult, user?.$id || "")
+              }
               className="absolute bottom-32 left-1/2 -translate-x-1/2"
             >
               {({ pressed }) => (
@@ -113,6 +118,12 @@ export default function Index() {
           </Text>
           <Text className="text-white font-nunitoBold">
             Longitude: {(jsonResult as any).longitude.toFixed(6)}
+          </Text>
+          <Text className="text-white font-nunitoBold">
+            Data: {(jsonResult as any).dateTaken}
+          </Text>
+          <Text className="text-white font-nunitoBold">
+            ID: {(jsonResult as any).userId}
           </Text>
         </View>
       )}
