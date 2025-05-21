@@ -109,7 +109,7 @@ export default function Index() {
 
   return (
     <SafeAreaView className="flex-1 bg-[#0d0d0d] items-center justify-center">
-      {renderPicture(uri, image, setUri, setImage, setJsonResult) ||
+      {renderPicture(uri, image, setUri, setImage, setJsonResult, jsonResult) ||
         renderCamera()}
       {jsonResult && (
         <View className="absolute top-10 bg-[#0d0d0d] p-4 rounded-lg">

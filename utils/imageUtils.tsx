@@ -95,17 +95,19 @@ export const renderPicture = (
   image: string | null,
   setUri: (uri: string | null) => void,
   setImage: (image: string | null) => void,
-  setJsonResult: (jsonResult: JsonResult | null) => void
+  setJsonResult: (jsonResult: object | null) => void,
+  jsonResult?: object | null // Add jsonResult as an optional parameter
 ) => {
   const source = uri || image;
   return source ? (
     <Preview
-      uri={source}
+      uri={(uri || image)!}
       onReset={() => {
         setUri(null);
         setImage(null);
         setJsonResult(null);
       }}
+      jsonResult={jsonResult} // Pass jsonResult to Preview
     />
   ) : null;
 };
