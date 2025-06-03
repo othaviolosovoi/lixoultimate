@@ -79,6 +79,7 @@ export default function Index() {
           }}
           onLogoutPress={signout}
           onLixoCoinPress={() => {
+
             router.push("/lixo-coins");
           }}
         />

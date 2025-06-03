@@ -26,7 +26,7 @@ export default function Header({
     setDropdownVisible(!dropdownVisible);
   };
   return (
-    <View className="flex-row justify-between items-center w-full px-4 h-24 bg-[#0d0d0d]">
+    <View className="flex-row justify-between items-center w-full px-4 h-24 bg-[#0d0d0d] border-b border-gray-700">
       <TouchableOpacity
         onPress={toggleDropdown}
         className="bg-[#008D80] h-12 w-12 rounded-full items-center justify-center"

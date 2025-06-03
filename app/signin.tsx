@@ -90,7 +90,7 @@ const signin = () => {
           <View>
             <View className="justify-evenly gap-4 mb-8">
               <Text className="text-4xl text-white text-center font-poppinsBold">
-                Bem vindo de volta
+                Bem vindo de Volta
               </Text>
               <Text className="font-nunito text-xl text-white text-center">
                 Entre na sua conta

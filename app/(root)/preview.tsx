@@ -28,6 +28,7 @@ export default function Preview({
         onLogoutPress={signout}
         onLixoCoinPress={() => {
           router.push("/lixo-coins");
+
         }}
       />
       <View style={{ flex: 1, position: "relative" }}>
