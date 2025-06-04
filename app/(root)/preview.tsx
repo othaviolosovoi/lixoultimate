@@ -27,7 +27,7 @@ export default function Preview({
 
     try {
       const response = await fetch(
-        "https://cc79-177-9-43-188.ngrok-free.app/classify",
+        "https://fcc5-177-95-30-7.ngrok-free.app/classify",
         {
           method: "POST",
           headers: {
