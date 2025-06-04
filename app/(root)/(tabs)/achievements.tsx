@@ -3,6 +3,7 @@ import {SafeAreaView, Text, View} from "react-native";
 import {Redirect, router} from "expo-router";
 import Header from "@/app/components/header";
 import React from "react";
+import {lixoList} from "@/data/lixoList";
 
 
 
@@ -27,6 +28,23 @@ export default function Achievements() {
 
 
 
+
+    type Status = "Coletado" | "Pendente" | "Recusado";
+
+
+    const statusContador = lixoList.reduce<Record<Status, number>>((acc, item) => {
+        if (!acc[item.status as Status]) {
+            acc[item.status as Status] = 0;
+        }
+
+        // Incrementa o contador do status
+        acc[item.status as Status]++;
+        return acc;
+    }, {
+        Coletado: 0,
+        Pendente: 0,
+        Recusado: 0
+    });
 
     return(
         <>
@@ -67,7 +85,7 @@ export default function Achievements() {
                             </View>
                             <View className="items-center">
                                 <Text style={{color: 'white', fontSize: 80, fontFamily: 'Nunito-Bold'}}>
-                                    22
+                                    {statusContador.Coletado + statusContador.Pendente + statusContador.Recusado}
                                 </Text>
                             </View>
                         </View>
@@ -82,7 +100,7 @@ export default function Achievements() {
                                 </View>
                                 <View className="pl-4">
                                     <Text style={{color: '#45BF55', fontSize: 36, fontFamily: 'Nunito-Bold'}}>
-                                        10
+                                        {statusContador.Coletado}
                                     </Text>
                                 </View>
                             </View>
@@ -96,7 +114,7 @@ export default function Achievements() {
                                 </View>
                                 <View className="pl-4">
                                     <Text style={{color: '#DBF227', fontSize: 36, fontFamily: 'Nunito-Bold'}}>
-                                        07
+                                        {statusContador.Pendente}
                                     </Text>
                                 </View>
                             </View>
@@ -128,7 +146,7 @@ export default function Achievements() {
                             </View>
                             <View className="pl-4">
                                 <Text style={{color: '#F22742', fontSize: 36, fontFamily: 'Nunito-Bold'}}>
-                                    03
+                                    {statusContador.Recusado}
                                 </Text>
                             </View>
                         </View>
