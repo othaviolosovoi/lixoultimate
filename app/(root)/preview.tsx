@@ -27,7 +27,7 @@ export default function Preview({
 
     try {
       const response = await fetch(
-        "https://fcc5-177-95-30-7.ngrok-free.app/classify",
+        "https://005e-177-95-30-7.ngrok-free.app/classify",
         {
           method: "POST",
           headers: {
@@ -43,11 +43,9 @@ export default function Preview({
 
       const result = await response.json();
       console.log("POST response:", result);
-      // Optionally, handle the response (e.g., show a success message or navigate)
-      onReset(); // Reset the preview after successful send
+      onReset();
     } catch (error) {
       console.error("Error sending POST request:", error);
-      // Optionally, show an error message to the user
     }
   };
 
@@ -77,12 +75,11 @@ export default function Preview({
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
             }}
-            contentFit="cover" // Ensures the image covers the entire area
+            contentFit="cover"
           />
         )}
         <View className="absolute top-4 right-4 w-9 h-9 rounded-full items-center justify-center">
           <View className="bg-black opacity-30 rounded-full p-2 w-full h-full">
-            {/* Background container with opacity */}
           </View>
           <TouchableOpacity
             className="absolute top-0 left-0 right-0 bottom-0 justify-center items-center"
