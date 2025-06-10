@@ -47,19 +47,6 @@ export default function History() {
 
 
                 <View className="w-11/12">
-                    {/*<View className='flex flex-row rounded-xl pb-1 justify-between items-center'>*/}
-                    {/*    <View className='flex flex-row items-center'>*/}
-                    {/*        <Text style={{color: '#A6A6A6', fontSize: 24, fontFamily: 'Poppins-Bold'}}>*/}
-                    {/*            Recentes*/}
-                    {/*        </Text>*/}
-                    {/*        <Text style={{color: '#A6A6A6', fontSize: 18, fontFamily: 'Poppins-Bold'}}>*/}
-                    {/*            ({lixoList.length})*/}
-                    {/*        </Text>*/}
-                    {/*    </View>*/}
-
-                    {/*    <Image source={require('@/assets/images/navigate_next.png')}/>*/}
-
-                    {/*</View>*/}
 
                     <View className="w-full pt-4">
                         <View className='flex flex-row rounded-sm justify-between items-center'>

@@ -1,5 +1,5 @@
 import {useAuth} from "@/context/AuthContext";
-import {SafeAreaView, Text, View} from "react-native";
+import {Image, SafeAreaView, Text, View} from "react-native";
 import {Redirect, router} from "expo-router";
 import {lixoList} from "@/data/lixoList";
 import React from "react";
@@ -26,15 +26,47 @@ export default function LixoCoins() {
     }
     return(
         <>
-            <View className="flex-1 bg-black items-center">
+            <View className="items-center flex-1 bg-[#0D0D0D] gap-6">
                 <LixoCoinHeader
                     user={user}
                     path={require("../../assets/images/coin_icon.png")}
                     onReturnPress={() => {
-                        router.push("/profile");
+                        router.push("/");
                     }}
                 />
+
+                <View className='w-11/12 rounded-md bg-[#262626] justify-center py-2 px-4'>
+                    <View>
+                        <Text style={{color: '#A6A6A6', fontSize: 16, fontFamily: 'Nunito-Medium'}}>
+                            Saldo Total
+                        </Text>
+                    </View>
+                    <View className='flex-row items-center gap-2'>
+                        <Text style={{color: '#FFFFFF', fontSize: 40, fontFamily: 'Nunito-Bold'}}>
+                            200
+                        </Text>
+                        <Image className="w-35 h-35 object-cover" source={require("../../assets/images/coin_icon.png")} />
+                    </View>
+                </View>
+
+                <View className="w-11/12 border-b border-gray-700">
+                    <View className='flex flex-row rounded-sm justify-between items-center'>
+                        <View className='flex flex-row items-center'>
+                            <Text style={{color: '#A6A6A6', fontSize: 24, fontFamily: 'Poppins-Bold'}}>
+                                Recentes
+                            </Text>
+                            {/*<Text style={{color: '#A6A6A6', fontSize: 18, fontFamily: 'Poppins-Bold'}}>*/}
+                            {/*    ({lixoList.length})*/}
+                            {/*</Text>*/}
+                        </View>
+
+                        <Image source={require('@/assets/images/navigate_next.png')}/>
+
+                    </View>
+                </View>
             </View>
+
+
         </>
     )
 
