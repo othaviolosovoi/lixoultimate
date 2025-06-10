@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,10 +6,13 @@ import {
   ActivityIndicator,
   StyleSheet,
   SafeAreaView,
+  RefreshControl, // Import for pull-to-refresh
 } from 'react-native';
 
 import LixoItem from './lixoItem';
 import { WasteDetectionData } from '@/types/user_waste_images';
+
+const SERVER_URL_DATABASE = process.env.EXPO_PUBLIC_SERVER_URL_DATABASE;
 
 interface MinhasDeteccoesScreenProps {
   userId: string;
@@ -18,44 +21,63 @@ interface MinhasDeteccoesScreenProps {
 export default function MinhasDeteccoesScreen({ userId }: MinhasDeteccoesScreenProps) {
   const [detectionsList, setDetectionsList] = useState<WasteDetectionData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false); // For pull-to-refresh UI
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUserDetections = async () => {
-      if (!userId) {
-        setError('ID do usuário não fornecido.');
-        setIsLoading(false);
-        return;
-      }
+  /**
+   * Fetches user detections from the server.
+   * @param isInitialLoad - Determines if it's the first data load to show a full-screen indicator.
+   */
+  const fetchUserDetections = useCallback(async (isInitialLoad = false) => {
+    if (!userId) {
+      setError('ID do usuário não fornecido.');
+      if (isInitialLoad) setIsLoading(false);
+      return;
+    }
+    
+    if (isInitialLoad) {
       setIsLoading(true);
-      setError(null);
-      setDetectionsList([]);
+    } else {
+      // For manual pull-to-refresh, we use a different state
+      setIsRefreshing(true);
+    }
+    setError(null);
 
-      try {
-        const response = await fetch(
-          `https://e0c6-177-95-30-7.ngrok-free.app/detections/user/${userId}/`
+    try {
+      const response = await fetch(
+        `${SERVER_URL_DATABASE}/detections/user/${userId}/`
+      );
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `HTTP error! status: ${response.status} - ${errorText}`,
         );
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(
-            `HTTP error! status: ${response.status} - ${errorText}`,
-          );
-        }
-        const data: WasteDetectionData[] = await response.json();
-        console.log("Lista de detecções recebidas:", data);
-        setDetectionsList(data);
-      } catch (err) {
-        console.error('Failed to fetch user detections:', err);
-        setError(
-          err instanceof Error ? err.message : 'Ocorreu um erro desconhecido ao buscar detecções.',
-        );
-      } finally {
+      }
+      const data: WasteDetectionData[] = await response.json();
+      setDetectionsList(data);
+    } catch (err) {
+      console.error('Failed to fetch user detections:', err);
+      setError(
+        err instanceof Error ? err.message : 'Ocorreu um erro desconhecido ao buscar detecções.',
+      );
+    } finally {
+      if (isInitialLoad) {
         setIsLoading(false);
       }
-    };
+      setIsRefreshing(false);
+    }
+  }, [userId]); // The function depends on userId
 
-    fetchUserDetections();
-  }, [userId]);
+  // Effect for initial load
+  useEffect(() => {
+    // Fetch data immediately when the component mounts
+    fetchUserDetections(true);
+  }, [fetchUserDetections]);
+
+  // Handler for the manual pull-to-refresh action
+  const onRefresh = () => {
+    fetchUserDetections(false);
+  };
 
   if (isLoading) {
     return (
@@ -70,7 +92,6 @@ export default function MinhasDeteccoesScreen({ userId }: MinhasDeteccoesScreenP
     return (
       <SafeAreaView style={parentStyles.containerCentered}>
         <Text style={parentStyles.errorText}>Erro ao carregar: {error}</Text>
-        {/* Botao tentar novamente */}
       </SafeAreaView>
     );
   }
@@ -78,7 +99,7 @@ export default function MinhasDeteccoesScreen({ userId }: MinhasDeteccoesScreenP
   if (detectionsList.length === 0) {
     return (
       <SafeAreaView style={parentStyles.containerCentered}>
-        <Text style={parentStyles.emptyText}>Nenhuma detecção encontrada para este usuário.</Text>
+        <Text style={parentStyles.emptyText}>Nenhuma detecção encontrada.</Text>
       </SafeAreaView>
     );
   }
@@ -90,7 +111,15 @@ export default function MinhasDeteccoesScreen({ userId }: MinhasDeteccoesScreenP
         renderItem={({ item }) => <LixoItem itemData={item} />}
         keyExtractor={(item) => item.id}
         contentContainerStyle={parentStyles.listContentContainer}
-        // ListHeaderComponent={<Text style={parentStyles.headerTitle}>Minhas Detecções</Text>}
+        // Add RefreshControl for pull-to-refresh functionality
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor="#A0A0A0" // For iOS
+            colors={['#A0A0A0']} // For Android
+          />
+        }
       />
     </SafeAreaView>
   );
@@ -131,12 +160,4 @@ const parentStyles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'Nunito-Regular',
   },
-  // headerTitle: {
-  //   fontSize: 24,
-  //   fontFamily: 'Nunito-Bold',
-  //   color: '#FFFFFF',
-  //   marginLeft: 10,
-  //   marginBottom: 15,
-  //   marginTop:10,
-  // }
 });

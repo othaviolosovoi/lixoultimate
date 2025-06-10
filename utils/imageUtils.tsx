@@ -10,12 +10,15 @@ import { useAuth } from "../context/AuthContext";
 
 interface JsonResult {
   base64: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null; // Allow null if location permission is denied
+  longitude: number | null; // Allow null if location permission is denied
   dateTaken: string;
   userId: string;
 }
 
+/**
+ * Captures a picture, displays it immediately, and processes its data in the background.
+ */
 export const takePicture = async (
   cameraRef: RefObject<CameraView>,
   setUri: (uri: string | null) => void,
@@ -23,113 +26,94 @@ export const takePicture = async (
   userId: string
 ) => {
   try {
-    // Take the picture
+    // 1. Take the picture
     const photo = await cameraRef.current?.takePictureAsync();
     if (!photo?.uri) {
       throw new Error("Falha ao capturar a foto");
     }
 
-    // Capture date taken and adjust to UTC-03:00 (Brazil, São Paulo)
-    const now = new Date();
-    const offsetMs = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
-    const adjustedDate = new Date(now.getTime() - offsetMs);
-    const dateTaken = `${adjustedDate.toISOString().slice(0, -1)}-03:00`;
-    console.log("Data:", dateTaken);
-
-    // Request location permissions
-    console.log("Solicitando permissões de localizzação...");
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      console.log("Permissão de localização negada");
-      Alert.alert(
-        "Aviso",
-        "Permissão de localização negada. Ative a localização para georreferenciar a foto."
-      );
-      setUri(null);
-      setJsonResult(null);
-      return;
-    }
-
-    // Get current location
-    console.log("Obtendo localização atual...");
-    const location = await Location.getCurrentPositionAsync({
-      accuracy: Location.Accuracy.High,
-    });
-    const { latitude, longitude } = location.coords;
-    console.log("Localização coletada:", { latitude, longitude });
-
-    // Convert photo to base64
-    console.log("Convertendo foto para base64...");
-    const fileInfo = await FileSystem.readAsStringAsync(photo.uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-    console.log("Base64 criada, tamanho:", fileInfo.length);
-
-    // Create JSON object
-    const jsonObject = {
-      base64: fileInfo,
-      latitude,
-      longitude,
-      dateTaken,
-      userId,
-    };
-    console.log("JSON Object:", JSON.stringify(jsonObject, null, 2));
-    console.log("Base64, tamanho:", fileInfo.length);
-
-    // Set states
+    // 2. Immediately display the picture to the user
     setUri(photo.uri);
-    setJsonResult(jsonObject);
+    // Initially, set jsonResult to null so the send button is disabled until data is ready
+    setJsonResult(null);
+
+    // 3. Process location and other data in the background
+    (async () => {
+      try {
+        // Capture date taken and adjust to UTC-03:00 (Brazil, São Paulo)
+        const now = new Date();
+        const offsetMs = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
+        const adjustedDate = new Date(now.getTime() - offsetMs);
+        const dateTaken = `${adjustedDate.toISOString().slice(0, -1)}-03:00`;
+        console.log("Data:", dateTaken);
+
+        // Request location permissions
+        console.log("Solicitando permissões de localização...");
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        
+        let latitude: number | null = null;
+        let longitude: number | null = null;
+        
+        if (status === "granted") {
+          console.log("Obtendo localização atual...");
+          const location = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.High,
+          });
+          latitude = location.coords.latitude;
+          longitude = location.coords.longitude;
+          console.log("Localização coletada:", { latitude, longitude });
+        } else {
+          console.log("Permissão de localização negada");
+          Alert.alert(
+            "Aviso",
+            "Permissão de localização negada. A foto será enviada sem georreferenciamento."
+          );
+        }
+
+        // Convert photo to base64
+        console.log("Convertendo foto para base64...");
+        const fileInfo = await FileSystem.readAsStringAsync(photo.uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        console.log("Base64 criada, tamanho:", fileInfo.length);
+
+        // Create JSON object
+        const jsonObject: JsonResult = {
+          base64: fileInfo,
+          latitude,
+          longitude,
+          dateTaken,
+          userId,
+        };
+        console.log("JSON Object criado:", JSON.stringify(jsonObject, null, 2));
+
+        // 4. Update state with the complete JSON object, enabling the send button
+        setJsonResult(jsonObject);
+      } catch (backgroundErr) {
+        console.error("Erro no processamento em segundo plano:", backgroundErr);
+        Alert.alert(
+          "Erro",
+          "Falha ao processar os dados da foto. Tente novamente."
+        );
+        // Clear the preview if background processing fails
+        setUri(null);
+        setJsonResult(null);
+      }
+    })();
   } catch (err) {
     console.error("takePicture falhou:", err);
     Alert.alert(
       "Erro",
-      "Falha ao capturar a foto ou obter localização. Tente novamente."
+      "Falha ao capturar a foto. Tente novamente."
     );
     setUri(null);
     setJsonResult(null);
   }
 };
 
-export const renderPicture = (
-  uri: string | null,
-  image: string | null,
-  setUri: (uri: string | null) => void,
-  setImage: (image: string | null) => void,
-  setJsonResult: (jsonResult: object | null) => void,
-  jsonResult?: object | null // Add jsonResult as an optional parameter
-) => {
-  const source = uri || image;
-  return source ? (
-    <Preview
-      uri={(uri || image)!}
-      onReset={() => {
-        setUri(null);
-        setImage(null);
-        setJsonResult(null);
-      }}
-      jsonResult={jsonResult} // Pass jsonResult to Preview
-    />
-  ) : null;
-};
-
-export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
-  try {
-    console.log("Convertendo base64 para ArrayBuffer com atob...");
-    const binaryString = atob(base64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-
-    console.log("ArrayBuffer criado, byteLength:", bytes.buffer.byteLength);
-    return bytes.buffer;
-  } catch (error) {
-    console.error("base64ToArrayBuffer falhou:", error);
-    throw error;
-  }
-};
-
+/**
+ * Picks an image, displays it immediately, and processes its EXIF data in the background.
+ */
 export const pickImage = async (
   setImage: (image: string | null) => void,
   setJsonResult: (jsonResult: JsonResult | null) => void,
@@ -137,13 +121,10 @@ export const pickImage = async (
 ) => {
   console.log("Função pickImage iniciada");
   try {
-    // Request document picker permissions
-    console.log("Abrindo document picker...");
     const res = await DocumentPicker.getDocumentAsync({
       type: "image/*",
       copyToCacheDirectory: true,
     });
-    console.log("Resposta document picker:", JSON.stringify(res, null, 2));
 
     if (res.canceled) {
       console.log("Document picker cancelado");
@@ -152,162 +133,125 @@ export const pickImage = async (
 
     const pickedFile = res.assets[0];
     const fileUri = pickedFile.uri;
-    console.log("Arquivo escolhido:", {
-      uri: fileUri,
-      name: pickedFile.name,
-      mimeType: pickedFile.mimeType,
-    });
 
-    if (!pickedFile) {
-      console.log("Nenhum arquivo escolhido");
-      return;
-    }
-
-    // Read file as base64
-    console.log("Lendo arquivo como base64...");
-    const fileInfo = await FileSystem.readAsStringAsync(fileUri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-    console.log("Arquivo lido como base64, tamanho:", fileInfo.length);
-
-    // Convert base64 to ArrayBuffer
-    console.log("Convertendo base64 para ArrayBuffer...");
-    const arrayBuffer = base64ToArrayBuffer(fileInfo);
-    console.log("ArrayBuffer criado, byteLength:", arrayBuffer.byteLength);
-
-    // Parse EXIF data
-    console.log("Analisando dados EXIF...");
-    const parser = ExifParser.create(arrayBuffer);
-    const result = parser.parse();
-    console.log("Dados EXIF analisados:", JSON.stringify(result, null, 2));
-
-    const exif = result.tags;
-    if (!exif) {
-      console.error("Nenhum dado EXIF encontrado");
-      Alert.alert("Erro", "Nenhum dado EXIF encontrado na imagem.");
-      setImage(null);
-      setJsonResult(null);
-      return;
-    }
-
-    // Extract GPS and date data
-    console.log("Extraindo dados GPS e data...");
-    const {
-      GPSLatitude,
-      GPSLongitude,
-      GPSLatitudeRef,
-      GPSLongitudeRef,
-      DateTimeOriginal,
-      DateTime,
-      GPSDateStamp,
-      GPSTimeStamp,
-    } = exif;
-    console.log("Dados EXIF puros:", {
-      GPSLatitude,
-      GPSLongitude,
-      GPSLatitudeRef,
-      GPSLongitudeRef,
-      DateTimeOriginal,
-      DateTime,
-      GPSDateStamp,
-      GPSTimeStamp,
-    });
-
-    if (
-      GPSLatitude === undefined ||
-      GPSLongitude === undefined ||
-      GPSLatitudeRef === undefined ||
-      GPSLongitudeRef === undefined
-    ) {
-      console.log("Dados GPS não encontrados na imagem.");
-      Alert.alert(
-        "Aviso",
-        "A imagem selecionada não possui dados de GPS, ative esta funcionalidade na câmera do seu dispositivo."
-      );
-      setImage(null);
-      setJsonResult(null);
-      return;
-    }
-
-    // Adjust GPS coordinates
-    const latitude =
-      GPSLatitudeRef === "S" ? -Math.abs(GPSLatitude) : Math.abs(GPSLatitude);
-    const longitude =
-      GPSLongitudeRef === "W"
-        ? -Math.abs(GPSLongitude)
-        : Math.abs(GPSLongitude);
-
-    // Parse EXIF date
-    let dateTaken: string;
-    if (typeof DateTimeOriginal === "number") {
-      // Handle Unix timestamp
-      const date = new Date(DateTimeOriginal * 1000);
-      dateTaken = date.toISOString();
-      if (isNaN(Date.parse(dateTaken))) {
-        throw new Error("Timestamp EXIF inválido");
-      }
-    } else if (
-      typeof DateTimeOriginal === "string" ||
-      typeof DateTime === "string"
-    ) {
-      // Handle string format (YYYY:MM:DD HH:MM:SS)
-      const exifDate = DateTimeOriginal || DateTime;
-      try {
-        const formattedDate = exifDate.replace(
-          /(\d{4}):(\d{2}):(\d{2})/,
-          "$1-$2-$3"
-        );
-        dateTaken = `${formattedDate}`;
-        if (isNaN(Date.parse(dateTaken))) {
-          throw new Error("Formato de data EXIF inválido");
-        }
-      } catch (error) {
-        throw new Error("String de data EXIF inválido");
-      }
-    } else if (
-      GPSDateStamp &&
-      Array.isArray(GPSTimeStamp) &&
-      GPSTimeStamp.length === 3
-    ) {
-      // Fallback to GPSDateStamp + GPSTimeStamp
-      try {
-        const [year, month, day] = GPSDateStamp.split(":").map(Number);
-        const [hour, minute, second] = GPSTimeStamp.map(Number);
-        const date = new Date(year, month - 1, day, hour, minute, second);
-        dateTaken = date.toISOString();
-        if (isNaN(Date.parse(dateTaken))) {
-          throw new Error("date/time GPS inválido");
-        }
-      } catch (error) {
-        throw new Error("Formato date/time GPS date/time format");
-      }
-    } else {
-      console.log("Data EXIF não encontrada na imagem.");
-      Alert.alert("Aviso", "A imagem selecionada não possui data EXIF válida.");
-      setImage(null);
-      setJsonResult(null);
-      return;
-    }
-    console.log("Dados EXIF analisados:", { latitude, longitude, dateTaken });
-
-    // Create JSON object
-    const jsonObject = {
-      base64: fileInfo,
-      latitude,
-      longitude,
-      dateTaken,
-      userId,
-    };
-    console.log("Objeto JSON:", JSON.stringify(jsonObject, null, 2));
-    console.log("Base64, tamanho:", fileInfo.length);
-
-    // Set image and JSON result
+    // 1. Immediately display the selected image
     setImage(fileUri);
-    setJsonResult(jsonObject);
+    // Reset jsonResult until processing is complete
+    setJsonResult(null);
+
+    // 2. Process EXIF data and create JSON in the background
+    (async () => {
+      try {
+        const fileInfo = await FileSystem.readAsStringAsync(fileUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        const arrayBuffer = base64ToArrayBuffer(fileInfo);
+        const parser = ExifParser.create(arrayBuffer);
+        const result = parser.parse();
+        const exif = result.tags;
+
+        if (!exif) {
+          throw new Error("Nenhum dado EXIF encontrado na imagem.");
+        }
+
+        const {
+          GPSLatitude,
+          GPSLongitude,
+          GPSLatitudeRef,
+          GPSLongitudeRef,
+          DateTimeOriginal,
+          DateTime,
+          GPSDateStamp,
+          GPSTimeStamp,
+        } = exif;
+
+        if (
+          GPSLatitude === undefined ||
+          GPSLongitude === undefined ||
+          GPSLatitudeRef === undefined ||
+          GPSLongitudeRef === undefined
+        ) {
+          throw new Error("A imagem selecionada não possui dados de GPS.");
+        }
+
+        const latitude =
+          GPSLatitudeRef === "S" ? -Math.abs(GPSLatitude) : Math.abs(GPSLatitude);
+        const longitude =
+          GPSLongitudeRef === "W"
+            ? -Math.abs(GPSLongitude)
+            : Math.abs(GPSLongitude);
+
+        let dateTaken: string;
+        if (typeof DateTimeOriginal === "number") {
+          dateTaken = new Date(DateTimeOriginal * 1000).toISOString();
+        } else if (typeof DateTimeOriginal === "string" || typeof DateTime === "string") {
+          const exifDate = (DateTimeOriginal || DateTime) as string;
+          dateTaken = exifDate.replace(/(\d{4}):(\d{2}):(\d{2})/, "$1-$2-$3");
+        } else if (GPSDateStamp && Array.isArray(GPSTimeStamp)) {
+          const [year, month, day] = (GPSDateStamp as string).split(":").map(Number);
+          const [hour, minute, second] = GPSTimeStamp.map(Number);
+          dateTaken = new Date(year, month - 1, day, hour, minute, second).toISOString();
+        } else {
+          throw new Error("A imagem selecionada não possui data EXIF válida.");
+        }
+
+        const jsonObject: JsonResult = {
+          base64: fileInfo,
+          latitude,
+          longitude,
+          dateTaken,
+          userId,
+        };
+        
+        console.log("Objeto JSON criado:", JSON.stringify(jsonObject, null, 2));
+        
+        // 3. Update state with the complete JSON object
+        setJsonResult(jsonObject);
+      } catch (backgroundErr: any) {
+        console.error("pickImage falhou no processamento em segundo plano:", backgroundErr);
+        Alert.alert("Erro", backgroundErr.message || "Falha ao processar a imagem. Tente novamente.");
+        setImage(null);
+        setJsonResult(null);
+      }
+    })();
   } catch (err) {
     console.error("pickImage falhou:", err);
-    Alert.alert("Erro", "Falha ao processar a imagem. Tente novamente.");
+    Alert.alert("Erro", "Falha ao selecionar a imagem. Tente novamente.");
     setImage(null);
     setJsonResult(null);
   }
+};
+
+
+export const renderPicture = (
+  uri: string | null,
+  image: string | null,
+  setUri: (uri: string | null) => void,
+  setImage: (image: string | null) => void,
+  setJsonResult: (jsonResult: object | null) => void,
+  jsonResult?: object | null
+) => {
+  const source = uri || image;
+  return source ? (
+    <Preview
+      uri={source}
+      onReset={() => {
+        setUri(null);
+        setImage(null);
+        setJsonResult(null);
+      }}
+      jsonResult={jsonResult}
+    />
+  ) : null;
+};
+
+export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
 };

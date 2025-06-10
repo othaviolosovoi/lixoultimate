@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Image,
 } from 'react-native';
-
+import * as Location from 'expo-location';
 import { WasteDetectionData } from '@/types/user_waste_images';
 
 
@@ -15,21 +15,27 @@ export interface LixoItemProps {
   itemData: WasteDetectionData; 
 }
 
-
-const formatDisplayDate = (isoDateString?: string): string => {
+// Formata a data e hora para o modal (ex: 10/03/25 - 14:30)
+const formatModalDateTime = (isoDateString?: string): string => {
   if (!isoDateString) return 'Data indisponível';
   try {
     const dateObj = new Date(isoDateString);
+    const date = dateObj.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit', // Ano com 2 dígitos
+    });
     const hours = dateObj.getHours().toString().padStart(2, '0');
     const minutes = dateObj.getMinutes().toString().padStart(2, '0');
-    return `${hours}h${minutes}min`;
+    return `${date} - ${hours}:${minutes}`;
   } catch (e) {
-    console.error('Error formatting display date:', e);
+    console.error('Error formatting modal date/time:', e);
     return 'Data inválida';
   }
 };
 
-const formatModalDate = (isoDateString?: string): string => {
+// Formata a data para o card (ex: 10/03/2025)
+const formatDate = (isoDateString?: string): string => {
   if (!isoDateString) return 'Data indisponível';
   try {
     const dateObj = new Date(isoDateString);
@@ -39,7 +45,7 @@ const formatModalDate = (isoDateString?: string): string => {
       year: 'numeric',
     });
   } catch (e) {
-    console.error('Error formatting modal date:', e);
+    console.error('Error formatting date:', e);
     return 'Data inválida';
   }
 };
@@ -47,34 +53,70 @@ const formatModalDate = (isoDateString?: string): string => {
 async function getAddressFromCoordinates(
   latitude?: number,
   longitude?: number,
-): Promise<string> {
+): Promise<{ cardAddress: string, modalAddress: string }> {
+  const fallback = {
+      cardAddress: 'Endereço não encontrado',
+      modalAddress: 'Endereço não encontrado',
+  };
+
   if (typeof latitude !== 'number' || typeof longitude !== 'number') {
-    return 'Coordenadas inválidas';
+    return {
+        cardAddress: 'Coordenadas inválidas',
+        modalAddress: 'Coordenadas inválidas',
+    };
   }
 
-  console.warn('Geocoding API (LixoItem) não implementada. Retornando coordenadas.');
-  return `Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}`;
+  try {
+    const addresses = await Location.reverseGeocodeAsync({ latitude, longitude });
+
+    if (addresses && addresses.length > 0) {
+      const address = addresses[0];
+      
+      const cardAddress = [address.street, address.streetNumber, address.subregion]
+        .filter(Boolean)
+        .join(', ');
+
+      // Endereço para o modal: Rua, Número - Bairro
+      const modalAddress = [address.street, address.streetNumber].filter(Boolean).join(', ') + (address.district ? ` - ${address.district}` : '');
+
+      return { cardAddress, modalAddress };
+    } else {
+      return fallback;
+    }
+  } catch (error) {
+    console.error('Erro ao buscar endereço:', error);
+    return {
+        cardAddress: 'Não foi possível buscar o endereço',
+        modalAddress: 'Não foi possível buscar o endereço',
+    };
+  }
 }
 
 
 
 export default function LixoItem({ itemData }: LixoItemProps) { 
   const [mostrarModal, setMostrarModal] = useState(false);
-  const [displayAddress, setDisplayAddress] =
-    useState<string>('Buscando endereço...'); 
+  const [cardAddress, setCardAddress] = useState<string>('Buscando endereço...'); 
+  const [modalAddress, setModalAddress] = useState<string>('Buscando endereço...'); 
 
 
   useEffect(() => {
     if (itemData && itemData.latitude != null && itemData.longitude != null) {
-      setDisplayAddress('Buscando endereço...'); // Reseta ao trocar itemData
+      setCardAddress('Buscando endereço...');
+      setModalAddress('Buscando endereço...');
       getAddressFromCoordinates(itemData.latitude, itemData.longitude)
-        .then(setDisplayAddress)
+        .then(addresses => {
+          setCardAddress(addresses.cardAddress);
+          setModalAddress(addresses.modalAddress);
+        })
         .catch(err => {
           console.error('Geocoding error in LixoItem:', err);
-          setDisplayAddress('Endereço não encontrado');
+          setCardAddress('Endereço não encontrado');
+          setModalAddress('Endereço não encontrado');
         });
     } else {
-      setDisplayAddress('Coordenadas indisponíveis');
+      setCardAddress('Coordenadas indisponíveis');
+      setModalAddress('Coordenadas indisponíveis');
     }
   }, [itemData])
 
@@ -102,7 +144,7 @@ export default function LixoItem({ itemData }: LixoItemProps) {
     case 'A coletar': 
       color = '#DBF227';
       simbolo = require('../../assets/images/pending_circle.png');
-      avisoStatus = 'Aguardando coleta de resíduos...';
+      avisoStatus = 'Aguardando a coleta dos resíduos';
       break;
     case 'Recusado':
     case 'Recusada': 
@@ -116,8 +158,8 @@ export default function LixoItem({ itemData }: LixoItemProps) {
       avisoStatus = 'Status desconhecido...'; 
   }
 
-  const displayDate = formatDisplayDate(itemData.date_taken);
-  const modalFullDate = formatModalDate(itemData.date_taken);
+  const cardDate = formatDate(itemData.date_taken);
+  const modalDateTime = formatModalDateTime(itemData.date_taken);
 
   return (
     <View className="mb-3">
@@ -143,7 +185,7 @@ export default function LixoItem({ itemData }: LixoItemProps) {
               numberOfLines={1}
               ellipsizeMode="middle"
             >
-              Foto #{itemData.id.substring(0, 8)}... {/* id */}
+              Foto #{itemData.id.substring(0, 8)}...
             </Text>
             <Text
               style={{
@@ -155,7 +197,7 @@ export default function LixoItem({ itemData }: LixoItemProps) {
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {displayAddress}
+              {cardAddress}
             </Text>
             <Text
               style={{
@@ -164,7 +206,7 @@ export default function LixoItem({ itemData }: LixoItemProps) {
                 fontFamily: 'Nunito-Medium',
               }}
             >
-              {displayDate}
+              {cardDate}
             </Text>
           </View>
           <View className="w-20 justify-center items-center pl-1">
@@ -184,7 +226,7 @@ export default function LixoItem({ itemData }: LixoItemProps) {
         </View>
       </TouchableOpacity>
 
-      {/* Modal */}
+      {/* Modal Redesenhado */}
       <Modal
         visible={mostrarModal}
         transparent
@@ -192,58 +234,45 @@ export default function LixoItem({ itemData }: LixoItemProps) {
         onRequestClose={() => setMostrarModal(false)}
       >
         <View style={styles.overlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.exitCross}>
+          <View style={styles.modalView}>
+            {/* Header do Modal */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Foto #{itemData.id.substring(0, 5)}</Text>
               <TouchableOpacity className="p-2" onPress={() => setMostrarModal(false)}>
                 <Image
                   source={require('../../assets/images/X.png')}
-                  style={{ width: 20, height: 20 }}
+                  style={{ width: 14, height: 14 }} // Ícone menor
                 />
               </TouchableOpacity>
             </View>
-            <View className="items-center px-2 pb-2">
+
+            {/* Imagem do Modal */}
+            <View style={styles.imageContainer}>
               {itemData.base64 && (
                 <Image
-                  className="rounded-md bg-white w-64 h-64 object-contain mb-4"
+                  style={{ width: '100%', height: '100%', borderRadius: 8 }}
                   source={{ uri: `data:image/jpeg;base64,${itemData.base64}` }}
                   resizeMode="contain"
                 />
               )}
             </View>
-            <View className="px-4">
-              <View className="pb-4">
-                <Text style={{color: '#FFFFFF', fontSize: 12, fontFamily: 'Nunito-Bold', marginBottom: 2}}>
-                  ID da Detecção
-                </Text>
-                <Text style={{color: '#FFFFFF', fontSize: 16, fontFamily: 'Nunito-Regular'}}>
-                  {itemData.id}
-                </Text>
-              </View>
-              <View className="pb-4">
-                <Text style={{color: '#FFFFFF', fontSize: 12, fontFamily: 'Nunito-Bold', marginBottom: 2}}>
-                  Endereço
-                </Text>
-                <Text style={{color: '#FFFFFF', fontSize: 16, fontFamily: 'Nunito-Regular'}}>
-                  {displayAddress}
-                </Text>
-              </View>
-              <View className="pb-4">
-                <Text style={{color: '#FFFFFF', fontSize: 12, fontFamily: 'Nunito-Bold', marginBottom: 2}}>
-                  Data da Captura
-                </Text>
-                <Text style={{color: '#A6A6A6', fontSize: 16, fontFamily: 'Nunito-Regular'}}>
-                  {modalFullDate} às {displayDate}
-                </Text>
-              </View>
-              <View>
-                <Text style={{color: '#FFFFFF', fontSize: 12, fontFamily: 'Nunito-Bold', marginBottom: 2}}>
-                  Status
-                </Text>
-                <Text style={{ color, fontSize: 16, fontFamily: 'Nunito-Medium' }}>
-                  {avisoStatus}
-                </Text>
-              </View>
+
+            {/* Conteúdo do Modal */}
+            <View style={styles.modalContent}>
+                <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Endereço</Text>
+                    <Text style={styles.infoValue}>{modalAddress}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Data</Text>
+                    <Text style={styles.infoValue}>{modalDateTime}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Status</Text>
+                    <Text style={[styles.infoValue, { color: color, fontFamily: 'Nunito-Bold' }]}>{avisoStatus}</Text>
+                </View>
             </View>
+
           </View>
         </View>
       </Modal>
@@ -255,20 +284,61 @@ export default function LixoItem({ itemData }: LixoItemProps) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: 'rgba(0,0,0,0.85)', // Mais escuro
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modalContent: {
-    backgroundColor: '#262626',
-    borderRadius: 12,
+  modalView: {
+    margin: 20,
+    backgroundColor: '#262626', // Tom de cinza escuro
+    borderRadius: 5,
     width: '90%',
     maxWidth: 400,
-    paddingBottom: 20,
-    // paddingTop: 5
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  exitCross: {
-    alignItems: 'flex-end',
-    // justifyContent: 'flex-end'
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 15,
+    paddingBottom: 10,
+  },
+  modalTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontFamily: 'Nunito-Bold',
+  },
+  imageContainer: {
+    height: 200,
+    marginHorizontal: 20,
+  },
+  modalContent: {
+    backgroundColor: '#404040', // Tom de cinza um pouco mais claro
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    marginTop: 15,
+    borderRadius: 5,
+  },
+  infoRow: {
+    marginBottom: 12,
+  },
+  infoLabel: {
+    color: '#D0D0D0', // Cinza claro
+    fontSize: 14,
+    fontFamily: 'Nunito-Bold',
+    marginBottom: 2,
+  },
+  infoValue: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'Nunito-Regular',
   },
 });

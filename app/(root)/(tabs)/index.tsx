@@ -112,7 +112,7 @@ export default function Index() {
     <SafeAreaView className="flex-1 bg-[#0d0d0d] items-center justify-center">
       {renderPicture(uri, image, setUri, setImage, setJsonResult, jsonResult) ||
         renderCamera()}
-      {jsonResult && (
+      {/* {jsonResult && (
         <View className="absolute top-10 bg-[#0d0d0d] p-4 rounded-lg">
           <Text className="text-white font-nunitoBold">
             Latitude: {(jsonResult as any).latitude.toFixed(6)}
@@ -127,7 +127,7 @@ export default function Index() {
             ID: {(jsonResult as any).userId}
           </Text>
         </View>
-      )}
+      )} */}
     </SafeAreaView>
   );
 }

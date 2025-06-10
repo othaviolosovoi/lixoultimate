@@ -7,6 +7,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import Header from "../components/header";
 import { Redirect, router } from "expo-router";
 
+const SERVER_URL_CLASSIFICATION = process.env.EXPO_PUBLIC_SERVER_URL_CLASSIFICATION;
+
 export default function Preview({
   uri,
   onReset,
@@ -19,34 +21,44 @@ export default function Preview({
   const { user, signout } = useAuth();
   const { width, height } = Dimensions.get("window");
 
-  const handleSend = async () => {
+  /**
+   * Sends the classification data to the server without waiting for a response.
+   * This allows the UI to be reset immediately.
+   */
+  const handleSend = () => {
     if (!jsonResult) {
       console.error("No jsonResult available to send");
       return;
     }
 
-    try {
-      const response = await fetch(
-        "https://005e-177-95-30-7.ngrok-free.app/classify",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(jsonResult),
+    console.log("Sending POST request to:", `${SERVER_URL_CLASSIFICATION}/classify`);
+
+    // The fetch request is initiated, but we don't 'await' its completion.
+    // This is a "fire-and-forget" approach.
+    fetch(`${SERVER_URL_CLASSIFICATION}/classify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(jsonResult),
+    })
+      .then(async (response) => {
+        // We can still process the response in the background.
+        if (!response.ok) {
+          // If we get a bad response, we log an error.
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      );
+        const result = await response.json();
+        console.log("POST response received in background:", result);
+      })
+      .catch((error) => {
+        // Catch and log any errors that occur during the fetch.
+        // This won't block the UI.
+        console.error("Error sending POST request in background:", error);
+      });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log("POST response:", result);
-      onReset();
-    } catch (error) {
-      console.error("Error sending POST request:", error);
-    }
+    // Reset the UI immediately after firing the request.
+    onReset();
   };
 
   return (
@@ -60,7 +72,6 @@ export default function Preview({
         onLogoutPress={signout}
         onLixoCoinPress={() => {
           router.push("/lixo-coins");
-
         }}
       />
       <View style={{ flex: 1, position: "relative" }}>
@@ -79,8 +90,7 @@ export default function Preview({
           />
         )}
         <View className="absolute top-4 right-4 w-9 h-9 rounded-full items-center justify-center">
-          <View className="bg-black opacity-30 rounded-full p-2 w-full h-full">
-          </View>
+          <View className="bg-black opacity-30 rounded-full p-2 w-full h-full"></View>
           <TouchableOpacity
             className="absolute top-0 left-0 right-0 bottom-0 justify-center items-center"
             onPress={onReset}
