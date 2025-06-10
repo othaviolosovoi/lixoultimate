@@ -1,49 +1,49 @@
 import React from 'react';
-import { Text, Platform } from 'react-native';
+import { Text } from 'react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import LinearGradient from 'react-native-linear-gradient';
 
-type GradientTextProps = {
-    text: string;
-    cor1: any;
-    cor2: any;
-    tamanho: number;
-    fonte: string;
+
+type GradientTextMaskProps = {
+    text: any;
+    fontSize?: number;
+    fontFamily?: string;
+    color1?: any;
+    color2?: any;
 };
 
-const GradientText: React.FC<GradientTextProps> = ({ text, cor1, cor2, tamanho, fonte }) => {
-    if (Platform.OS === 'android') {
-        // fallback no Android (sem gradiente, usa cor sólida)
-        return (
-            <Text style={{ fontSize: tamanho, fontFamily: fonte, color: cor1 }}>
-                {text}
-            </Text>
-        );
-    }
-
+export const GradientTextMask: React.FC<GradientTextMaskProps> = ({
+       text,
+       fontSize = 12,
+       fontFamily = 'Nunito-Medium',
+       color1 = '#ff0000',
+       color2 = '#0000ff',
+    }) => {
     return (
         <MaskedView
             maskElement={
                 <Text
-                    style={{
-                        fontSize: tamanho,
-                        fontFamily: fonte,
-                        color: 'black',
-                        textAlign: 'center',
-                    }}
+                    className="bg-transparent"
+                    style={{ fontSize, fontFamily }}
                 >
                     {text}
                 </Text>
             }
         >
             <LinearGradient
-                colors={[cor1, cor2]}
                 start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{ flex: 1 }}
-            />
+                end={{ x: 1, y: 1 }}
+                colors={[color1 ?? "#A6A6A6", color2 ?? "#A6A6A6"]}
+            >
+                <Text
+                    className="opacity-0"
+                    style={{ fontSize, fontFamily }}
+                >
+                    {text}
+                </Text>
+            </LinearGradient>
         </MaskedView>
     );
 };
 
-export default GradientText;
+export default GradientTextMask;

@@ -48,7 +48,7 @@ export default function Achievements() {
 
     return(
         <>
-            <View className="flex-1 bg-black">
+            <View className="flex-1 bg-black items-center">
                 <Header
                     user={user}
                     path={require("../../../assets/images/coin_icon.png")}
@@ -62,9 +62,9 @@ export default function Achievements() {
                     }}
                 />
 
-                <View className="w-full pl-8 pr-8 pt-8">
-                    <View className='rounded-xl items-start'>
-                        <Text style={{color: 'white', fontSize: 25, fontFamily: 'Poppins-Bold'}}>
+                <View className="w-full px-4 pt-4">
+                    <View className='rounded-sm items-start'>
+                        <Text style={{color: '#FFFFFF', fontSize: 24, fontFamily: 'Poppins-Bold'}}>
                             Meu Desempenho
                         </Text>
 
@@ -73,28 +73,32 @@ export default function Achievements() {
 
 
                 {/*</View>*/}
-                <View className='grid grid-flow-col grid-rows-3 gap-2 w-full pl-8 pr-8'>
+                <View className='w-full gap-4 items-center'>
 
-                    <View className='flex flex-row gap-4'>
+                    <View className='flex flex-row w-full px-4'>
 
-                        <View className='w-1/2 aspect-square rounded-xl bg-[#262626]'>
-                            <View className="pl-4 pt-2">
-                                <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Bold'}}>
-                                    Fotos Tiradas
-                                </Text>
-                            </View>
-                            <View className="items-center">
-                                <Text style={{color: 'white', fontSize: 80, fontFamily: 'Nunito-Bold'}}>
-                                    {statusContador.Coletado + statusContador.Pendente + statusContador.Recusado}
-                                </Text>
-                            </View>
-                        </View>
-
-
-                        <View className='flex flex-col gap-2 w-1/2'>
-                            <View className='w-auto rounded-xl bg-[#262626] row-span-3 flex justify-center'>
+                        <View className='w-1/2 rounded-sm bg-[#262626]'>
                                 <View className="pl-4 pt-2">
-                                    <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Bold'}}>
+                                    <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Medium'}}>
+                                        Fotos Tiradas
+                                    </Text>
+                                </View>
+                                <View className="items-center">
+                                    <Text style={{color: 'white', fontSize: 80, fontFamily: 'Nunito-Bold'}}>
+                                        {statusContador.Coletado + statusContador.Pendente + statusContador.Recusado}
+                                    </Text>
+                                </View>
+                            </View>
+
+
+
+
+
+                        <View className='gap-4 flex flex-col w-1/2 justify-between items-end'>
+                            {/*<View className='w-auto rounded-sm bg-[#262626] row-span-2 flex justify-center'>*/}
+                            <View className='w-11/12 rounded-sm bg-[#262626]'>
+                                <View className="pl-4 pt-2">
+                                    <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Medium'}}>
                                         Coletadas
                                     </Text>
                                 </View>
@@ -104,11 +108,9 @@ export default function Achievements() {
                                     </Text>
                                 </View>
                             </View>
-
-
-                            <View className='rounded-xl bg-[#262626] row-span-3 flex justify-center'>
+                            <View className='w-11/12 rounded-sm bg-[#262626]'>
                                 <View className="pl-4 pt-2">
-                                    <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Bold'}}>
+                                    <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Medium'}}>
                                         Pendentes
                                     </Text>
                                 </View>
@@ -123,10 +125,10 @@ export default function Achievements() {
 
                     </View>
 
-                    <View className='flex flex-row gap-4'>
-                        <View className='w-1/2 rounded-xl bg-[#262626] row-span-3 flex justify-center'>
-                            <View className="pl-4 pt-2">
-                                <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Bold'}}>
+                    <View className='flex flex-row justify-between w-11/12'>
+                        <View className=' w-1/2 flex flex-col rounded-sm bg-[#262626] justify-center'>
+                            <View className="pl-4">
+                                <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Medium'}}>
                                     Dias Ativos
                                 </Text>
                             </View>
@@ -138,24 +140,28 @@ export default function Achievements() {
                         </View>
 
 
-                        <View className='w-1/2 rounded-xl bg-[#262626] row-span-3 flex justify-center'>
-                            <View className="pl-4 pt-2">
-                                <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Bold'}}>
-                                    Recusadas
-                                </Text>
+                        <View className='flex flex-col w-1/2 justify-between items-end'>
+                            <View className='w-11/12 rounded-sm bg-[#262626]'>
+                                <View className="pl-4">
+                                    <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Medium'}}>
+                                        Recusadas
+                                    </Text>
+                                </View>
+                                <View className="pl-4">
+                                    <Text style={{color: '#F22742', fontSize: 36, fontFamily: 'Nunito-Bold'}}>
+                                        {statusContador.Recusado}
+                                    </Text>
+                                </View>
                             </View>
-                            <View className="pl-4">
-                                <Text style={{color: '#F22742', fontSize: 36, fontFamily: 'Nunito-Bold'}}>
-                                    {statusContador.Recusado}
-                                </Text>
-                            </View>
+
                         </View>
+
 
                     </View>
 
                 </View>
-                <View className="w-full pl-8 pr-8 pt-8">
-                    <View className='rounded-xl items-start'>
+                <View className="w-full pl-4 pr-8 pt-8">
+                    <View className='rounded-sm items-start'>
                         <Text style={{color: 'white', fontSize: 25, fontFamily: 'Poppins-Bold'}}>
                             Missões
                         </Text>
@@ -163,9 +169,9 @@ export default function Achievements() {
                     </View>
                 </View>
 
-                <View className="w-full pl-8 pr-8">
+                <View className="w-full px-4">
 
-                    <View className='border border-red-100 items-center p-8 rounded-xl'>
+                    <View className='border border-red-100 items-center p-8 rounded-sm'>
                         <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Bold'}}>
                             Em Desenvolvimento
                         </Text>

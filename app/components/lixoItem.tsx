@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import {View, Text, TouchableOpacity, Modal, StyleSheet, Image} from 'react-native';
 import {Lixo} from "@/data/lixoList";
-import GradientText from "@/app/components/gradientText";
+import { LinearGradient } from "expo-linear-gradient";
+import MaskedView from "@react-native-masked-view/masked-view";
+import GradientTextMask from "@/app/components/gradientText";
+
+
 
 export default function LixoItem({id, endereco, date, status, imagem} : Lixo) {
     const [mostrarModal, setMostrarModal] = useState(false)
@@ -20,7 +24,7 @@ export default function LixoItem({id, endereco, date, status, imagem} : Lixo) {
             color1='#45BF55'
             color2='#008D80'
             color='#45BF55'
-            simbolo=require('../../assets/images/ok_circle.png')
+            // simbolo=require('../../assets/images/ok_circle.svg')
             avisoStatus='Coletada realizada com sucesso!'
             break
 
@@ -28,7 +32,7 @@ export default function LixoItem({id, endereco, date, status, imagem} : Lixo) {
             color1='#F2FF88'
             color2='#DBF227'
             color='#DBF227'
-            simbolo=require('../../assets/images/pending_circle.png')
+            // simbolo=require('../../assets/images/pending_circle.svg')
             avisoStatus='Aguardando coleta de resíduos...'
             break
 
@@ -36,13 +40,13 @@ export default function LixoItem({id, endereco, date, status, imagem} : Lixo) {
             color1='#F22742'
             color2='#FF576D'
             color='#F22742'
-            simbolo=require('../../assets/images/x_circle.png')
+            // simbolo=require('../../assets/images/x_circle.svg')
             avisoStatus='A imagem não possui resíduos.'
             break
 
         default:
             color='#A6A6A6'
-            simbolo=require('../../assets/images/processing_circle.png')
+            // simbolo=require('../../assets/images/processing_circle.png')
             avisoStatus='Aguardando análise...'
     }
 
@@ -50,39 +54,71 @@ export default function LixoItem({id, endereco, date, status, imagem} : Lixo) {
         <View>
             <TouchableOpacity onPress={() => setMostrarModal(true)}>
 
-                <View className='w-full rounded-md bg-[#262626] flex flex-row justify-between'>
-                    {/*1*/}
-                    <View className='justify-center p-2'>
-                        {/*  IMAGEM AQUI  */}
-                        <Image className="rounded-sm bg-white p-8 w-4 h-4 object-cover" source={imagem} />
-                    </View>
+                <View className='w-full rounded-sm bg-[#262626] flex flex-row justify-around'>
 
 
-                    {/*2*/}
-                    <View className='pt-2 pb-2'>
-                        <View>
-                            <Text style={{color: '#FFFFFF', fontSize: 16, fontFamily: 'Nunito-Bold'}}>
-                                Foto #{id}
-                            </Text>
+                    <View className='bg-green-500 flex flex-row items-center'>
+
+                        {/*1*/}
+                        <View className='bg-blue-500 justify-center px-2'>
+                            {/*  IMAGEM AQUI  */}
+                            <Image className="rounded-sm bg-white p-8 w-4 h-4 object-cover" source={imagem} />
                         </View>
-                        <View>
-                            <Text style={{color: '#FFFFFF', fontSize: 14, fontFamily: 'Nunito-Regular'}}>
-                                {endereco}
-                            </Text>
-                            <Text style={{color: '#A6A6A6', fontSize: 12, fontFamily: 'Nunito-Medium'}}>
-                                {date.toLocaleDateString("pt-BR")}
-                            </Text>
+
+                        {/*2*/}
+                        <View className='bg-red-500'>
+                            <View>
+                                <Text style={{ color: '#FFFFFF', fontSize:  16, fontFamily: 'Nunito-Bold'}}>
+                                    Foto #{id}
+                                </Text>
+                            </View>
+                            <View>
+                                {/*<View className='bg-red-500 w-50' style={{ overflow: 'hidden', width: '100%' }}>*/}
+                                {/*    <Text style={{color: '#FFFFFF', fontSize: 14, fontFamily: 'Nunito-Regular'}}>*/}
+                                {/*        {endereco}*/}
+                                {/*    </Text>*/}
+
+                                {/*</View>*/}
+                                <View style={{ width: 200, padding: 2}}>
+                                    <Text numberOfLines={1} ellipsizeMode="tail" style={{ maxWidth: '95%', color: '#FFFFFF', fontSize: 14, fontFamily: 'Nunito-Regular' }}>
+                                        {endereco}
+                                    </Text>
+                                </View>
+                                <Text style={{color: '#A6A6A6', fontSize: 12, fontFamily: 'Nunito-Medium'}}>
+                                    {date.toLocaleDateString("pt-BR")}
+                                </Text>
+                            </View>
                         </View>
+
+
                     </View>
 
                     {/*3*/}
-                    <View className='justify-center p-4'>
+                    <View className='bg-white justify-center items-center py-4'>
                         {/*  SÍMBOLO AQUI  */}
                         <View className='items-center'>
-                            <Image alt="Ícone" className="rounded-sm p-4 w-4 h-4 object-cover" source={simbolo} />
+                            <Image alt="Ícone" className="rounded-sm p-4 object-cover" source={simbolo} />
                         </View>
-                        <View className='items-center'>
-                            <Text style={{color, fontSize:12, fontFamily:'Nunito-Bold'}}>{status}</Text>
+
+                        <View className='justify-start items-center'>
+
+                            <MaskedView maskElement={
+                                <Text className='bg-transparent' style={{fontSize: 12, fontFamily: 'Nunito-Bold'}}>
+                                    {status}
+                                </Text>
+                            }>
+                                <LinearGradient
+                                    start={{x:0, y:0}}
+                                    end={{x:1, y:1}}
+                                    colors={[color1 ?? "#A6A6A6", color2 ?? "#A6A6A6"]}
+
+                                >
+                                    <Text className='opacity-0' style={{fontSize: 12, fontFamily: 'Nunito-Bold'}}>
+                                        {status}
+                                    </Text>
+                                </LinearGradient>
+                            </MaskedView>
+
                         </View>
 
 
@@ -136,13 +172,34 @@ export default function LixoItem({id, endereco, date, status, imagem} : Lixo) {
                             </View>
 
                             {/*3*/}
-                            <View className='justify-center p-4'>
+                            <View className='justify-center items-center p-4'>
                                 {/*  SÍMBOLO AQUI  */}
                                 <View className='items-center'>
                                     <Image alt="Ícone" className="rounded-sm p-4 w-4 h-4 object-cover" source={simbolo} />
                                 </View>
+                                {/*<View className='items-center'>*/}
+                                {/*    <Text style={{color, fontSize:12, fontFamily:'Nunito-Bold'}}>{status}</Text>*/}
+                                {/*</View>*/}
+
+
                                 <View className='items-center'>
-                                    <Text style={{color, fontSize:12, fontFamily:'Nunito-Bold'}}>{status}</Text>
+                                    <MaskedView maskElement={
+                                        <Text className='bg-transparent' style={{fontSize: 12, fontFamily: 'Nunito-Bold'}}>
+                                            {status}
+                                        </Text>
+                                    }>
+                                        <LinearGradient
+                                            start={{x:0, y:0}}
+                                            end={{x:1, y:1}}
+                                            colors={[color1 ?? "#A6A6A6", color2 ?? "#A6A6A6"]}
+
+                                        >
+                                            <Text className='opacity-0' style={{fontSize: 12, fontFamily: 'Nunito-Bold'}}>
+                                                {status}
+                                            </Text>
+                                        </LinearGradient>
+                                    </MaskedView>
+
                                 </View>
 
                             </View>
@@ -175,11 +232,25 @@ export default function LixoItem({id, endereco, date, status, imagem} : Lixo) {
                                 <Text style={{color: '#FFFFFF', fontSize: 12, fontFamily: 'Nunito-Bold'}}>
                                     Status
                                 </Text>
-                                <Text style={{color, fontSize: 16, fontFamily: 'Nunito-Medium'}}>
-                                    {avisoStatus}
-                                </Text>
-                                {/*<GradientText cor1={color1} cor2={color2} tamanho={16} text={avisoStatus} fonte='Nunito-Medium'/>*/}
 
+
+                                {/*reutilizar depois*/}
+                                <MaskedView maskElement={
+                                    <Text className='bg-transparent' style={{fontSize: 16, fontFamily: 'Nunito-Medium'}}>
+                                        {avisoStatus}
+                                    </Text>
+                                }>
+                                    <LinearGradient
+                                        start={{x:0, y:0}}
+                                        end={{x:1, y:1}}
+                                        colors={[color1 ?? "#A6A6A6", color2 ?? "#A6A6A6"]}
+
+                                    >
+                                        <Text className='opacity-0' style={{fontSize: 16, fontFamily: 'Nunito-Medium'}}>
+                                            {avisoStatus}
+                                        </Text>
+                                    </LinearGradient>
+                                </MaskedView>
 
                             </View>
 
@@ -207,7 +278,7 @@ const styles = StyleSheet.create({
     modalContent: {
         backgroundColor: '#262626',
         // alignItems:"",
-        borderRadius: 12,
+        borderRadius: 5,
         // width: '80%',
         paddingBottom: 20
     },

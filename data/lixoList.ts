@@ -15,21 +15,21 @@ const img = require("../assets/images/teste_imagem.jpeg")
 export const lixoList: Lixo[] = [
     {
         id: 1,
-        endereco: "Lorem ipsum dolor sit amet",
+        endereco: "q",
         date: new Date("2025-05-10"),
         status: "Coletado",
         imagem: img
     },
     {
         id: 2,
-        endereco: "Lorem ipsum dolor sit amet",
+        endereco: "Loremizxctametasdasdasasdasdasdasasascxd",
         date: new Date("2025-05-10"),
         status: "Pendente",
         imagem: img
     },
     {
         id: 3,
-        endereco: "Lorem ipsum dolor sit amet",
+        endereco: "Lor sdvsdvdsvdssdvdsvdsvsdvvedss",
         date: new Date("2025-05-10"),
         status: "Recusado",
         imagem: img

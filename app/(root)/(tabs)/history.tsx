@@ -29,7 +29,7 @@ export default function History() {
 
     return(
         <>
-            <View className="flex-1 bg-[#0D0D0D]">
+            <View className="items-center flex-1 bg-[#0D0D0D]">
                 <Header
                     user={user}
                     path={require("../../../assets/images/coin_icon.png")}
@@ -46,20 +46,37 @@ export default function History() {
 
 
 
-                <View className="w-full pl-8 pr-8 pt-6 gap-2">
-                    <View className='flex flex-row rounded-xl pb-1 justify-between items-center'>
-                        <View className='flex flex-row items-center'>
-                            <Text style={{color: '#A6A6A6', fontSize: 24, fontFamily: 'Poppins-Bold'}}>
-                                Recentes
-                            </Text>
-                            <Text style={{color: '#A6A6A6', fontSize: 18, fontFamily: 'Poppins-Bold'}}>
-                                ({lixoList.length})
-                            </Text>
+                <View className="w-11/12">
+                    {/*<View className='flex flex-row rounded-xl pb-1 justify-between items-center'>*/}
+                    {/*    <View className='flex flex-row items-center'>*/}
+                    {/*        <Text style={{color: '#A6A6A6', fontSize: 24, fontFamily: 'Poppins-Bold'}}>*/}
+                    {/*            Recentes*/}
+                    {/*        </Text>*/}
+                    {/*        <Text style={{color: '#A6A6A6', fontSize: 18, fontFamily: 'Poppins-Bold'}}>*/}
+                    {/*            ({lixoList.length})*/}
+                    {/*        </Text>*/}
+                    {/*    </View>*/}
+
+                    {/*    <Image source={require('@/assets/images/navigate_next.png')}/>*/}
+
+                    {/*</View>*/}
+
+                    <View className="w-full pt-4">
+                        <View className='flex flex-row rounded-sm justify-between items-center'>
+                            <View className='flex flex-row items-center'>
+                                <Text style={{color: '#A6A6A6', fontSize: 24, fontFamily: 'Poppins-Bold'}}>
+                                    Recentes
+                                </Text>
+                                <Text style={{color: '#A6A6A6', fontSize: 18, fontFamily: 'Poppins-Bold'}}>
+                                    ({lixoList.length})
+                                </Text>
+                            </View>
+
+                            <Image source={require('@/assets/images/navigate_next.png')}/>
+
                         </View>
-
-                        <Image source={require('@/assets/images/navigate_next.png')}/>
-
                     </View>
+
 
                     <ListaScrollavel/>
 
