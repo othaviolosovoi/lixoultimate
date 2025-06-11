@@ -15,7 +15,6 @@ export interface LixoItemProps {
   itemData: WasteDetectionData; 
 }
 
-// Formata a data e hora para o modal (ex: 10/03/25 - 14:30)
 const formatModalDateTime = (isoDateString?: string): string => {
   if (!isoDateString) return 'Data indisponível';
   try {
@@ -23,7 +22,7 @@ const formatModalDateTime = (isoDateString?: string): string => {
     const date = dateObj.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
-      year: '2-digit', // Ano com 2 dígitos
+      year: '2-digit',
     });
     const hours = dateObj.getHours().toString().padStart(2, '0');
     const minutes = dateObj.getMinutes().toString().padStart(2, '0');
@@ -34,7 +33,6 @@ const formatModalDateTime = (isoDateString?: string): string => {
   }
 };
 
-// Formata a data para o card (ex: 10/03/2025)
 const formatDate = (isoDateString?: string): string => {
   if (!isoDateString) return 'Data indisponível';
   try {
@@ -76,7 +74,6 @@ async function getAddressFromCoordinates(
         .filter(Boolean)
         .join(', ');
 
-      // Endereço para o modal: Rua, Número - Bairro
       const modalAddress = [address.street, address.streetNumber].filter(Boolean).join(', ') + (address.district ? ` - ${address.district}` : '');
 
       return { cardAddress, modalAddress };
@@ -164,12 +161,12 @@ export default function LixoItem({ itemData }: LixoItemProps) {
   return (
     <View className="mb-3">
       <TouchableOpacity onPress={() => setMostrarModal(true)}>
-        <View className="w-full rounded-md bg-[#262626] flex flex-row justify-between p-2">
+        <View className="w-full rounded-md bg-[#262626] flex flex-row justify-between px-3 py-2">
           {itemData.base64 ? (
             <View className="justify-center mr-2">
               <Image
                 className="rounded-sm bg-white w-16 h-16 object-cover"
-                source={{ uri: `data:image/jpeg;base64,${itemData.base64}` }}
+                source={{ uri: `data:image/jpeg;base64,${itemData.base64}`}}
               />
             </View>
           ) : (
@@ -226,7 +223,6 @@ export default function LixoItem({ itemData }: LixoItemProps) {
         </View>
       </TouchableOpacity>
 
-      {/* Modal Redesenhado */}
       <Modal
         visible={mostrarModal}
         transparent
@@ -235,18 +231,16 @@ export default function LixoItem({ itemData }: LixoItemProps) {
       >
         <View style={styles.overlay}>
           <View style={styles.modalView}>
-            {/* Header do Modal */}
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Foto #{itemData.id.substring(0, 5)}</Text>
               <TouchableOpacity className="p-2" onPress={() => setMostrarModal(false)}>
                 <Image
                   source={require('../../assets/images/X.png')}
-                  style={{ width: 14, height: 14 }} // Ícone menor
+                  style={{ width: 14, height: 14 }}
                 />
               </TouchableOpacity>
             </View>
 
-            {/* Imagem do Modal */}
             <View style={styles.imageContainer}>
               {itemData.base64 && (
                 <Image
@@ -257,7 +251,6 @@ export default function LixoItem({ itemData }: LixoItemProps) {
               )}
             </View>
 
-            {/* Conteúdo do Modal */}
             <View style={styles.modalContent}>
                 <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>Endereço</Text>
@@ -284,13 +277,13 @@ export default function LixoItem({ itemData }: LixoItemProps) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)', // Mais escuro
+    backgroundColor: 'rgba(0,0,0,0.85)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalView: {
     margin: 20,
-    backgroundColor: '#262626', // Tom de cinza escuro
+    backgroundColor: '#262626',
     borderRadius: 5,
     width: '90%',
     maxWidth: 400,
@@ -321,7 +314,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
   },
   modalContent: {
-    backgroundColor: '#404040', // Tom de cinza um pouco mais claro
+    backgroundColor: '#404040',
     paddingHorizontal: 20,
     paddingVertical: 15,
     marginTop: 15,
@@ -331,7 +324,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   infoLabel: {
-    color: '#D0D0D0', // Cinza claro
+    color: '#D0D0D0',
     fontSize: 14,
     fontFamily: 'Nunito-Bold',
     marginBottom: 2,

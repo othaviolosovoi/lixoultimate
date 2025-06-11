@@ -8,7 +8,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import { Redirect, router } from "expo-router";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -20,6 +20,8 @@ import {
   pickImage,
 } from "../../../utils/imageUtils";
 
+const SERVER_URL_ACTIVE = process.env.EXPO_PUBLIC_SERVER_URL_CLASSIFICATION;
+
 export default function Index() {
   const { user, session, signout, loading } = useAuth();
   const [permission, requestPermission] = useCameraPermissions();
@@ -27,6 +29,29 @@ export default function Index() {
   const [uri, setUri] = useState<string | null>(null);
   const [image, setImage] = useState<string | null>(null);
   const [jsonResult, setJsonResult] = useState<object | null>(null);
+
+  useEffect(() => {
+    const notifyUserActive = (userId: string) => {
+      const API_URL = "https://sua-api.com/user_active";
+
+      try {
+        fetch(`${SERVER_URL_ACTIVE}/user_active`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: userId }),
+        });
+        console.log(`Notificação de atividade enviada para o usuário: ${userId}`);
+      } catch (error) {
+        console.error("Erro ao tentar enviar notificação de atividade:", error);
+      }
+    };
+
+    if (user?.$id) {
+      notifyUserActive(user.$id);
+    }
+  }, [user]);
 
   if (!permission) {
     return null;
@@ -52,18 +77,15 @@ export default function Index() {
   }
 
   const renderCamera = () => {
-    console.log(user.$id);
     return (
       <>
         <Header
-          user={user}
           path={require("../../../assets/images/coin_icon.png")}
           onProfilePress={() => {
             router.push("/profile");
           }}
           onLogoutPress={signout}
           onLixoCoinPress={() => {
-
             router.push("/lixo-coins");
           }}
         />
@@ -73,7 +95,7 @@ export default function Index() {
           mute={false}
           responsiveOrientationWhenOrientationLocked
         >
-          <TouchableOpacity className="bg-[#0d0d0d86] rounded-full w-12 h-12 items-center justify-center absolute top-4 left-4">
+          <TouchableOpacity onPress={() => router.push("/(root)/(tabs)/help")} className="bg-[#0d0d0d86] rounded-full w-12 h-12 items-center justify-center absolute top-4 left-4">
             <MaterialIcons name="question-mark" size={24} color="white" />
           </TouchableOpacity>
           <View className="absolute bottom-0 left-0 w-full">
@@ -112,22 +134,6 @@ export default function Index() {
     <SafeAreaView className="flex-1 bg-[#0d0d0d] items-center justify-center">
       {renderPicture(uri, image, setUri, setImage, setJsonResult, jsonResult) ||
         renderCamera()}
-      {/* {jsonResult && (
-        <View className="absolute top-10 bg-[#0d0d0d] p-4 rounded-lg">
-          <Text className="text-white font-nunitoBold">
-            Latitude: {(jsonResult as any).latitude.toFixed(6)}
-          </Text>
-          <Text className="text-white font-nunitoBold">
-            Longitude: {(jsonResult as any).longitude.toFixed(6)}
-          </Text>
-          <Text className="text-white font-nunitoBold">
-            Data: {(jsonResult as any).dateTaken}
-          </Text>
-          <Text className="text-white font-nunitoBold">
-            ID: {(jsonResult as any).userId}
-          </Text>
-        </View>
-      )} */}
     </SafeAreaView>
   );
 }
