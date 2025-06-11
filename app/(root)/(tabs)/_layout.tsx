@@ -19,9 +19,10 @@ const TabIcon = ({
 
   return (
     <View
-      className={`flex flex-row w-full flex-1 min-w-[124px] min-h-[68px] rounded-full justify-center items-center mt-9 overflow-hidden ${
-        focused && title === "Reportar" ? "ml-8" : ""
-      } ${focused && title === "Ajuda" ? "mr-8" : ""}`}
+      className={`flex flex-row w-full flex-1 min-w-[124px] min-h-[68px] rounded-full justify-center items-center mt-9 overflow-hidden 
+        ${focused && title === "Reportar" ? "ml-8" : ""} 
+        ${focused && title === "Ajuda" ? "mr-8" : ""}
+      `}
     >
       {focused ? (
         <LinearGradient
@@ -29,7 +30,7 @@ const TabIcon = ({
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={{ borderRadius: 9999 }}
-          className=" w-full h-full flex-row justify-center items-center my-auto "
+          className=" w-full h-full flex-row justify-center items-center my-auto"
         >
           {React.cloneElement(icon, {
             size: 24,
@@ -52,7 +53,8 @@ const TabIcon = ({
 };
 
 const TabsLayout = () => {
-  return (
+
+    return (
     <Tabs
       screenOptions={{
         tabBarShowLabel: false,

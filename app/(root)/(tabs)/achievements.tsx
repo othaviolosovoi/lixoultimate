@@ -63,7 +63,7 @@ export default function Achievements() {
                 />
 
                 <View className="w-full px-4 pt-4">
-                    <View className='rounded-sm items-start'>
+                    <View className='rounded-md items-start'>
                         <Text style={{color: '#FFFFFF', fontSize: 24, fontFamily: 'Poppins-Bold'}}>
                             Meu Desempenho
                         </Text>
@@ -77,7 +77,7 @@ export default function Achievements() {
 
                     <View className='flex flex-row w-full px-4'>
 
-                        <View className='w-1/2 rounded-sm bg-[#262626]'>
+                        <View className='w-1/2 rounded-md bg-[#262626]'>
                                 <View className="pl-4 pt-2">
                                     <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Medium'}}>
                                         Fotos Tiradas
@@ -95,8 +95,8 @@ export default function Achievements() {
 
 
                         <View className='gap-4 flex flex-col w-1/2 justify-between items-end'>
-                            {/*<View className='w-auto rounded-sm bg-[#262626] row-span-2 flex justify-center'>*/}
-                            <View className='w-11/12 rounded-sm bg-[#262626]'>
+                            {/*<View className='w-auto rounded-md bg-[#262626] row-span-2 flex justify-center'>*/}
+                            <View className='w-11/12 rounded-md bg-[#262626]'>
                                 <View className="pl-4 pt-2">
                                     <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Medium'}}>
                                         Coletadas
@@ -108,7 +108,7 @@ export default function Achievements() {
                                     </Text>
                                 </View>
                             </View>
-                            <View className='w-11/12 rounded-sm bg-[#262626]'>
+                            <View className='w-11/12 rounded-md bg-[#262626]'>
                                 <View className="pl-4 pt-2">
                                     <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Medium'}}>
                                         Pendentes
@@ -126,7 +126,7 @@ export default function Achievements() {
                     </View>
 
                     <View className='flex flex-row justify-between w-11/12'>
-                        <View className=' w-1/2 flex flex-col rounded-sm bg-[#262626] justify-center'>
+                        <View className=' w-1/2 flex flex-col rounded-md bg-[#262626] justify-center py-2'>
                             <View className="pl-4">
                                 <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Medium'}}>
                                     Dias Ativos
@@ -141,7 +141,7 @@ export default function Achievements() {
 
 
                         <View className='flex flex-col w-1/2 justify-between items-end'>
-                            <View className='w-11/12 rounded-sm bg-[#262626]'>
+                            <View className='w-11/12 rounded-md bg-[#262626] py-2'>
                                 <View className="pl-4">
                                     <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Medium'}}>
                                         Recusadas
@@ -161,7 +161,7 @@ export default function Achievements() {
 
                 </View>
                 <View className="w-full pl-4 pr-8 pt-8">
-                    <View className='rounded-sm items-start'>
+                    <View className='rounded-md items-start'>
                         <Text style={{color: 'white', fontSize: 25, fontFamily: 'Poppins-Bold'}}>
                             Missões
                         </Text>
@@ -171,7 +171,7 @@ export default function Achievements() {
 
                 <View className="w-full px-4">
 
-                    <View className='border border-red-100 items-center p-8 rounded-sm'>
+                    <View className='border border-red-100 items-center p-8 rounded-md'>
                         <Text style={{color: '#D9D9D9', fontSize: 18, fontFamily: 'Nunito-Bold'}}>
                             Em Desenvolvimento
                         </Text>

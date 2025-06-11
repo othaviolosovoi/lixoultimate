@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Header from '../../components/header';
-import {Image, SafeAreaView, Text, View} from "react-native";
+import {Image, Text, View} from "react-native";
 import {Redirect, router} from "expo-router";
 import {useAuth} from "@/context/AuthContext";
 import ListaScrollavel from "@/app/components/scrollableList";
 import {lixoList} from "@/data/lixoList";
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function History() {
+
+
     const { user, session, signout, loading } = useAuth();
 
 
@@ -46,7 +49,9 @@ export default function History() {
 
 
 
-                <View className="w-11/12">
+
+
+                <View className="w-11/12 items-center h-[85%]">
 
                     <View className="w-full pt-4">
                         <View className='flex flex-row rounded-sm justify-between items-center'>
@@ -65,7 +70,12 @@ export default function History() {
                     </View>
 
 
-                    <ListaScrollavel/>
+                    <SafeAreaView style={{ flex: 1 ,paddingBottom: 70}}>
+                        <ListaScrollavel/>
+                    </SafeAreaView>
+
+
+
 
                 </View>
             </View>

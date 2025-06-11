@@ -4,11 +4,12 @@ import {Lixo, lixoList} from "@/data/lixoList";
 import LixoItem from "@/app/components/lixoItem";
 import SeparatorItem from "@/app/components/SeparatorItem";
 import {SafeAreaView} from "react-native-safe-area-context";
+import LixoCoinItem from "@/app/components/lixoCoinItem";
 
 
-export default function ListaScrollavel() {
+export default function LixoCoinListaScrollavel() {
     function renderItem({ item }: ListRenderItemInfo<Lixo>) {
-        return <LixoItem {...item} />;
+        return <LixoCoinItem {...item} />;
     }
     return (
         <View style={styles.container}>

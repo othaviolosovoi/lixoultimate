@@ -10,43 +10,38 @@ import GradientTextMask from "@/app/components/gradientText";
 export default function LixoItem({id, endereco, date, status, imagem} : Lixo) {
     const [mostrarModal, setMostrarModal] = useState(false)
 
-    let color;
+
     let simbolo;
     let avisoStatus;
 
     let color1;
     let color2;
-    let tamanho;
-    let fonte;
+
 
     switch(status){
         case 'Coletado':
             color1='#45BF55'
             color2='#008D80'
-            color='#45BF55'
-            // simbolo=require('../../assets/images/ok_circle.svg')
+            simbolo=require('../../assets/images/ok_circle.png')
             avisoStatus='Coletada realizada com sucesso!'
             break
 
         case 'Pendente':
             color1='#F2FF88'
             color2='#DBF227'
-            color='#DBF227'
-            // simbolo=require('../../assets/images/pending_circle.svg')
+            simbolo=require('../../assets/images/pending_circle.png')
             avisoStatus='Aguardando coleta de resíduos...'
             break
 
         case 'Recusado':
             color1='#F22742'
             color2='#FF576D'
-            color='#F22742'
-            // simbolo=require('../../assets/images/x_circle.svg')
+            simbolo=require('../../assets/images/x_circle.png')
             avisoStatus='A imagem não possui resíduos.'
             break
 
         default:
-            color='#A6A6A6'
-            // simbolo=require('../../assets/images/processing_circle.png')
+            simbolo=require('../../assets/images/processing_circle.png')
             avisoStatus='Aguardando análise...'
     }
 
@@ -54,32 +49,28 @@ export default function LixoItem({id, endereco, date, status, imagem} : Lixo) {
         <View>
             <TouchableOpacity onPress={() => setMostrarModal(true)}>
 
-                <View className='w-full rounded-sm bg-[#262626] flex flex-row justify-around'>
+                <View className='w-full rounded-md bg-[#262626] flex flex-row justify-between'>
 
 
-                    <View className='bg-green-500 flex flex-row items-center'>
+                    <View className='w-full flex flex-row items-center justify-between'>
 
                         {/*1*/}
-                        <View className='bg-blue-500 justify-center px-2'>
+                        <View className='justify-center px-2'>
                             {/*  IMAGEM AQUI  */}
                             <Image className="rounded-sm bg-white p-8 w-4 h-4 object-cover" source={imagem} />
                         </View>
 
                         {/*2*/}
-                        <View className='bg-red-500'>
+                        <View className='flex-1'>
                             <View>
                                 <Text style={{ color: '#FFFFFF', fontSize:  16, fontFamily: 'Nunito-Bold'}}>
                                     Foto #{id}
                                 </Text>
                             </View>
                             <View>
-                                {/*<View className='bg-red-500 w-50' style={{ overflow: 'hidden', width: '100%' }}>*/}
-                                {/*    <Text style={{color: '#FFFFFF', fontSize: 14, fontFamily: 'Nunito-Regular'}}>*/}
-                                {/*        {endereco}*/}
-                                {/*    </Text>*/}
-
                                 {/*</View>*/}
-                                <View style={{ width: 200, padding: 2}}>
+                                <View style={{padding: 2}}>
+                                {/*<View className='w-full'>*/}
                                     <Text numberOfLines={1} ellipsizeMode="tail" style={{ maxWidth: '95%', color: '#FFFFFF', fontSize: 14, fontFamily: 'Nunito-Regular' }}>
                                         {endereco}
                                     </Text>
@@ -90,39 +81,70 @@ export default function LixoItem({id, endereco, date, status, imagem} : Lixo) {
                             </View>
                         </View>
 
+                        {/*3*/}
+                        <View className='justify-center items-center px-2 py-4'>
+                            {/*  SÍMBOLO AQUI  */}
+                            <View className='items-center'>
+                                <Image alt="Ícone" className="rounded-sm p-4 object-cover" source={simbolo} />
+                            </View>
+
+                            <View className='justify-start items-center'>
+
+                                <MaskedView maskElement={
+                                    <Text className='bg-transparent' style={{fontSize: 12, fontFamily: 'Nunito-Bold'}}>
+                                        {status}
+                                    </Text>
+                                }>
+                                    <LinearGradient
+                                        start={{x:0, y:0}}
+                                        end={{x:1, y:1}}
+                                        colors={[color1 ?? "#A6A6A6", color2 ?? "#A6A6A6"]}
+
+                                    >
+                                        <Text className='opacity-0' style={{fontSize: 12, fontFamily: 'Nunito-Bold'}}>
+                                            {status}
+                                        </Text>
+                                    </LinearGradient>
+                                </MaskedView>
+
+                            </View>
+
+
+                        </View>
+
 
                     </View>
 
                     {/*3*/}
-                    <View className='bg-white justify-center items-center py-4'>
-                        {/*  SÍMBOLO AQUI  */}
-                        <View className='items-center'>
-                            <Image alt="Ícone" className="rounded-sm p-4 object-cover" source={simbolo} />
-                        </View>
+                    {/*<View className='bg-amber-950 justify-center items-center py-4'>*/}
+                    {/*    /!*  SÍMBOLO AQUI  *!/*/}
+                    {/*    <View className='items-center'>*/}
+                    {/*        <Image alt="Ícone" className="rounded-sm p-4 object-cover" source={simbolo} />*/}
+                    {/*    </View>*/}
 
-                        <View className='justify-start items-center'>
+                    {/*    <View className='justify-start items-center'>*/}
 
-                            <MaskedView maskElement={
-                                <Text className='bg-transparent' style={{fontSize: 12, fontFamily: 'Nunito-Bold'}}>
-                                    {status}
-                                </Text>
-                            }>
-                                <LinearGradient
-                                    start={{x:0, y:0}}
-                                    end={{x:1, y:1}}
-                                    colors={[color1 ?? "#A6A6A6", color2 ?? "#A6A6A6"]}
+                    {/*        <MaskedView maskElement={*/}
+                    {/*            <Text className='bg-transparent' style={{fontSize: 12, fontFamily: 'Nunito-Bold'}}>*/}
+                    {/*                {status}*/}
+                    {/*            </Text>*/}
+                    {/*        }>*/}
+                    {/*            <LinearGradient*/}
+                    {/*                start={{x:0, y:0}}*/}
+                    {/*                end={{x:1, y:1}}*/}
+                    {/*                colors={[color1 ?? "#A6A6A6", color2 ?? "#A6A6A6"]}*/}
 
-                                >
-                                    <Text className='opacity-0' style={{fontSize: 12, fontFamily: 'Nunito-Bold'}}>
-                                        {status}
-                                    </Text>
-                                </LinearGradient>
-                            </MaskedView>
+                    {/*            >*/}
+                    {/*                <Text className='opacity-0' style={{fontSize: 12, fontFamily: 'Nunito-Bold'}}>*/}
+                    {/*                    {status}*/}
+                    {/*                </Text>*/}
+                    {/*            </LinearGradient>*/}
+                    {/*        </MaskedView>*/}
 
-                        </View>
+                    {/*    </View>*/}
 
 
-                    </View>
+                    {/*</View>*/}
 
                 </View>
 

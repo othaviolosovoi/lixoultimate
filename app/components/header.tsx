@@ -6,6 +6,7 @@ import {
   ImageSourcePropType,
   TouchableOpacity,
 } from "react-native";
+import {lixoList} from "@/data/lixoList";
 
 export default function Header({
   user,
@@ -25,6 +26,44 @@ export default function Header({
   const toggleDropdown = () => {
     setDropdownVisible(!dropdownVisible);
   };
+
+  type Status = "Coletado" | "Pendente" | "Recusado";
+
+
+  const statusContador = lixoList.reduce<Record<Status, number>>((acc, item) => {
+    if (!acc[item.status as Status]) {
+      acc[item.status as Status] = 0;
+    }
+
+    // Incrementa o contador do status
+
+
+    switch(item.status){
+      case "Coletado":
+        acc[item.status as Status] = acc[item.status as Status] + 50;
+        break
+
+      case "Pendente":
+        acc[item.status as Status] = acc[item.status as Status] + 30;
+        break
+
+      case "Recusado":
+        acc[item.status as Status] = acc[item.status as Status] - 80;
+        break
+
+      default:
+        acc[item.status as Status] = 0
+
+    }
+
+    return acc;
+  }, {
+    Coletado: 0,
+    Pendente: 0,
+    Recusado: 0
+  });
+
+
   return (
     <View className="flex-row justify-between items-center w-full px-4 h-24 bg-[#0d0d0d] border-b border-gray-700">
       <TouchableOpacity
@@ -51,7 +90,7 @@ export default function Header({
         onPress={onLixoCoinPress}
         className="flex-row gap-2 items-center justify-center bg-[#262626] rounded-lg px-4 py-2"
       >
-        <Text className="text-white font-nunitoBold text-2xl">000</Text>
+        <Text className="text-white font-nunitoBold text-2xl">{statusContador.Coletado + statusContador.Pendente + statusContador.Recusado}</Text>
         <Image className="w-7 h-7 object-cover" source={path} />
       </TouchableOpacity>
     </View>
