@@ -120,7 +120,14 @@ export default function MinhasDeteccoesScreen({ userId }: MinhasDeteccoesScreenP
 
   return (
 
-    <SafeAreaView style={parentStyles.container}>
+    <SafeAreaView style={parentStyles.container} className='border-t border-gray-700'>
+      <View className="w-full px-4 pt-4">
+        <View className='rounded-md items-start'>
+          <Text style={{ color: '#FFFFFF', fontSize: 24, fontFamily: 'Poppins-Bold' }}>
+            Meu Histórico
+          </Text>
+        </View>
+      </View>
       <View style={{ paddingHorizontal: 10, paddingTop: 10, zIndex: 1000 }}>
         <DropDownPicker
           open={open}
@@ -130,7 +137,6 @@ export default function MinhasDeteccoesScreen({ userId }: MinhasDeteccoesScreenP
           setValue={setFilterValue}
           setItems={setFilterItems}
           placeholder="Filtrar por status"
-          // Estilos para o tema escuro
           theme="DARK"
           style={parentStyles.dropdown}
           dropDownContainerStyle={parentStyles.dropdownContainer}

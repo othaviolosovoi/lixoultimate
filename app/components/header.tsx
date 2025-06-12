@@ -76,7 +76,7 @@ export default function Header({
         className="flex-row gap-2 items-center justify-center bg-[#262626] rounded-lg px-4 py-2"
       >
         <Text className="text-white font-nunitoBold text-2xl">{coins}</Text>
-        <Image className="w-7 h-7 object-cover" source={path} />
+        <Image className="w-[24px] h-[24px] object-cover" source={path} />
       </TouchableOpacity>
     </View>
   );

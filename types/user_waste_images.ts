@@ -1,5 +1,6 @@
 export interface WasteDetectionData {
   id: string;
+  createdAt: string; 
   base64: string;
   latitude: number;
   longitude: number;

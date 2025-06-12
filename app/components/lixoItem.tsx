@@ -209,7 +209,7 @@ export default function LixoItem({ itemData }: LixoItemProps) {
           <View className="w-20 justify-center items-center pl-1">
             <Image
               alt="Ícone Status"
-              className="w-6 h-6 object-cover mb-1"
+              className="w-[24px] h-[24px] object-cover mb-1"
               source={simbolo}
             />
             <Text

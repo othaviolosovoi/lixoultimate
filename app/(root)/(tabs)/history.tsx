@@ -33,7 +33,7 @@ export default function History() {
         <>
             <View className="flex-1 bg-[#0D0D0D]">
                 <Header
-                    user={user}
+                    // user={user}
                     path={require("../../../assets/images/coin_icon.png")}
                     onProfilePress={() => {
                         router.push("/profile");

@@ -1,5 +1,3 @@
-// Conteúdo de achievements.tsx MODIFICADO
-
 import { useAuth } from "@/context/AuthContext";
 import { SafeAreaView, Text, View, Image, ActivityIndicator } from "react-native";
 import { Redirect, router } from "expo-router";
@@ -39,7 +37,7 @@ export default function Achievements() {
 
         try {
           const [detectionsResponse, userResponse] = await Promise.all([
-            fetch(`${SERVER_URL_DATABASE}/detections/user/${user.$id}`),
+            fetch(`${SERVER_URL_DATABASE}/detections_achievements/user/${user.$id}`),
             fetch(`${SERVER_URL_DATABASE}/users/${user.$id}`)
           ]);
 
@@ -110,7 +108,7 @@ export default function Achievements() {
             onLixoCoinPress={() => router.push("/lixo-coins")}
           />
 
-          <View className="w-full px-4 pt-4">
+          <View className="w-full px-4 pt-4 border-t border-gray-700">
             <View className='rounded-md items-start'>
               <Text style={{ color: '#FFFFFF', fontSize: 24, fontFamily: 'Poppins-Bold' }}>
                 Meu Desempenho

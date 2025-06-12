@@ -32,8 +32,6 @@ export default function Index() {
 
   useEffect(() => {
     const notifyUserActive = (userId: string) => {
-      const API_URL = "https://sua-api.com/user_active";
-
       try {
         fetch(`${SERVER_URL_ACTIVE}/user_active`, {
           method: 'POST',
@@ -80,6 +78,7 @@ export default function Index() {
     return (
       <>
         <Header
+          // user={user}
           path={require("../../../assets/images/coin_icon.png")}
           onProfilePress={() => {
             router.push("/profile");
