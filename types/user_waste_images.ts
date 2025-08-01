@@ -1,13 +1,16 @@
+export interface DetectionPoint {
+  class_name: string;
+  contour_normalized: number[][];
+}
 export interface WasteDetectionData {
   id: string;
-  createdAt: string; 
+  createdAt: string;
   base64: string;
   latitude: number;
   longitude: number;
   date_taken: string;
   status: string;
-  // user_id?: string;
-  // detected_classes?: string;
+  detection_points: DetectionPoint[]; // De 'JSON' para 'DetectionPoint[]'
 }
 
 export interface LixoItemProps {

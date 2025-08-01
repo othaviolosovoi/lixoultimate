@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,11 +7,11 @@ import {
   StyleSheet,
   SafeAreaView,
   RefreshControl,
-} from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
+} from "react-native";
+import DropDownPicker from "react-native-dropdown-picker";
 
-import LixoItem from './lixoItem';
-import { WasteDetectionData } from '@/types/user_waste_images';
+import LixoItem from "./lixoItem";
+import { WasteDetectionData } from "@/types/user_waste_images";
 
 const SERVER_URL_DATABASE = process.env.EXPO_PUBLIC_SERVER_URL_DATABASE;
 
@@ -19,68 +19,81 @@ interface MinhasDeteccoesScreenProps {
   userId: string;
 }
 
-export default function MinhasDeteccoesScreen({ userId }: MinhasDeteccoesScreenProps) {
+export default function MinhasDeteccoesScreen({
+  userId,
+}: MinhasDeteccoesScreenProps) {
   const [allDetections, setAllDetections] = useState<WasteDetectionData[]>([]);
-  const [filteredDetections, setFilteredDetections] = useState<WasteDetectionData[]>([]);
+  const [filteredDetections, setFilteredDetections] = useState<
+    WasteDetectionData[]
+  >([]);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const [filterValue, setFilterValue] = useState('Todos'); 
+  const [filterValue, setFilterValue] = useState("Todos");
   const [filterItems, setFilterItems] = useState([
-    { label: 'Mostrar Todas', value: 'Todos' },
-    { label: 'Coletado', value: 'Coletado' },
-    { label: 'A coletar', value: 'A coletar' },
-    { label: 'Recusado', value: 'Recusado' },
+    { label: "Mostrar Todas", value: "Todos" },
+    { label: "Coletado", value: "Coletado" },
+    { label: "A coletar", value: "A coletar" },
+    { label: "Recusado", value: "Recusado" },
   ]);
 
-  const fetchUserDetections = useCallback(async (isInitialLoad = false) => {
-    if (!userId) {
-      setError('ID do usuário não fornecido.');
-      if (isInitialLoad) setIsLoading(false);
-      return;
-    }
-    
-    if (isInitialLoad) {
-      setIsLoading(true);
-    } else {
-      setIsRefreshing(true);
-    }
-    setError(null);
+  const fetchUserDetections = useCallback(
+    async (isInitialLoad = false) => {
+      if (!userId) {
+        setError("ID do usuário não fornecido.");
+        if (isInitialLoad) setIsLoading(false);
+        return;
+      }
 
-    try {
-      const response = await fetch(`${SERVER_URL_DATABASE}/detections/user/${userId}/`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data: WasteDetectionData[] = await response.json();
-      setAllDetections(data);
-    } catch (err) {
-      console.error('Failed to fetch user detections:', err);
-      setError(err instanceof Error ? err.message : 'Ocorreu um erro desconhecido ao buscar detecções.');
-    } finally {
       if (isInitialLoad) {
-        setIsLoading(false);
+        setIsLoading(true);
+      } else {
+        setIsRefreshing(true);
       }
-      setIsRefreshing(false);
-    }
-  }, [userId]);
+      setError(null);
+
+      try {
+        const response = await fetch(
+          `${SERVER_URL_DATABASE}/detections/user/${userId}/`
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data: WasteDetectionData[] = await response.json();
+        setAllDetections(data);
+      } catch (err) {
+        console.error("Failed to fetch user detections:", err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Ocorreu um erro desconhecido ao buscar detecções."
+        );
+      } finally {
+        if (isInitialLoad) {
+          setIsLoading(false);
+        }
+        setIsRefreshing(false);
+      }
+    },
+    [userId]
+  );
 
   useEffect(() => {
     fetchUserDetections(true);
   }, [fetchUserDetections]);
 
   useEffect(() => {
-    if (filterValue === 'Todos') {
+    if (filterValue === "Todos") {
       setFilteredDetections(allDetections);
     } else {
-      const filtered = allDetections.filter(item => {
-        if (filterValue === 'A coletar') {
-          return item.status === 'A coletar' || item.status === 'Pendente';
+      const filtered = allDetections.filter((item) => {
+        if (filterValue === "A coletar") {
+          return item.status === "A coletar" || item.status === "Pendente";
         }
-        if (filterValue === 'Recusado') {
-          return item.status === 'Recusado' || item.status === 'Recusada';
+        if (filterValue === "Recusado") {
+          return item.status === "Recusado" || item.status === "Recusada";
         }
         return item.status === filterValue;
       });
@@ -108,7 +121,6 @@ export default function MinhasDeteccoesScreen({ userId }: MinhasDeteccoesScreenP
       </SafeAreaView>
     );
   }
-  
 
   if (allDetections.length === 0) {
     return (
@@ -119,11 +131,19 @@ export default function MinhasDeteccoesScreen({ userId }: MinhasDeteccoesScreenP
   }
 
   return (
-
-    <SafeAreaView style={parentStyles.container} className='border-t border-gray-700'>
+    <SafeAreaView
+      style={parentStyles.container}
+      className="border-t border-gray-700"
+    >
       <View className="w-full px-4 pt-4">
-        <View className='rounded-md items-start'>
-          <Text style={{ color: '#FFFFFF', fontSize: 24, fontFamily: 'Poppins-Bold' }}>
+        <View className="rounded-md items-start">
+          <Text
+            style={{
+              color: "#FFFFFF",
+              fontSize: 24,
+              fontFamily: "Poppins-Bold",
+            }}
+          >
             Meu Histórico
           </Text>
         </View>
@@ -153,30 +173,31 @@ export default function MinhasDeteccoesScreen({ userId }: MinhasDeteccoesScreenP
             refreshing={isRefreshing}
             onRefresh={onRefresh}
             tintColor="#A0A0A0"
-            colors={['#A0A0A0']}
+            colors={["#A0A0A0"]}
           />
         }
         ListEmptyComponent={
-            <View style={parentStyles.containerCentered}>
-                <Text style={parentStyles.emptyText}>Nenhuma detecção encontrada para este filtro.</Text>
-            </View>
+          <View style={parentStyles.containerCentered}>
+            <Text style={parentStyles.emptyText}>
+              Nenhuma detecção encontrada para este filtro.
+            </Text>
+          </View>
         }
       />
     </SafeAreaView>
   );
 }
 
-
 const parentStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: "#0d0d0d",
   },
   containerCentered: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#0d0d0d',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#0d0d0d",
     padding: 20,
   },
   listContentContainer: {
@@ -186,28 +207,28 @@ const parentStyles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#A0A0A0',
-    textAlign: 'center',
-    fontFamily: 'Nunito-Regular',
+    color: "#A0A0A0",
+    textAlign: "center",
+    fontFamily: "Nunito-Regular",
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#FFFFFF',
-    fontFamily: 'Nunito-Regular',
+    color: "#FFFFFF",
+    fontFamily: "Nunito-Regular",
   },
   errorText: {
     fontSize: 16,
-    color: '#FF6B6B',
-    textAlign: 'center',
-    fontFamily: 'Nunito-Regular',
+    color: "#FF6B6B",
+    textAlign: "center",
+    fontFamily: "Nunito-Regular",
   },
   dropdown: {
-    backgroundColor: '#262626',
-    borderColor: '#404040',
+    backgroundColor: "#262626",
+    borderColor: "#404040",
   },
   dropdownContainer: {
-    backgroundColor: '#262626',
-    borderColor: '#404040',
-  }
+    backgroundColor: "#262626",
+    borderColor: "#404040",
+  },
 });

@@ -12,6 +12,7 @@ import { useAuth } from "../../context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
 import Header from "../components/header";
 import { router } from "expo-router";
+import Toast from "react-native-toast-message";
 
 const SERVER_URL_CLASSIFICATION =
   process.env.EXPO_PUBLIC_SERVER_URL_CLASSIFICATION;
@@ -48,15 +49,29 @@ export default function Preview({
     })
       .then(async (response) => {
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage =
+            errorData.detail || `HTTP error! status: ${response.status}`;
+          throw new Error(errorMessage);
         }
         const result = await response.json();
         console.log("POST response received in background:", result);
+
+        Toast.show({
+          type: "success",
+          text1: "Enviado com Sucesso! ✅",
+          text2: "Sua foto foi enviada para análise.",
+        });
       })
       .catch((error) => {
         console.error("Error sending POST request in background:", error);
-      });
 
+        Toast.show({
+          type: "error",
+          text1: "Erro ao Enviar 😥",
+          text2: error.message || "Não foi possível conectar ao servidor.",
+        });
+      });
     onReset();
   };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,153 +6,230 @@ import {
   Modal,
   StyleSheet,
   Image,
-} from 'react-native';
-import * as Location from 'expo-location';
-import { WasteDetectionData } from '@/types/user_waste_images';
-
+} from "react-native";
+import * as Location from "expo-location";
+import { WasteDetectionData } from "@/types/user_waste_images";
+import Svg, { Polygon, ClipPath, Rect, G } from "react-native-svg";
 
 export interface LixoItemProps {
-  itemData: WasteDetectionData; 
+  itemData: WasteDetectionData;
 }
 
 const formatModalDateTime = (isoDateString?: string): string => {
-  if (!isoDateString) return 'Data indisponível';
+  if (!isoDateString) return "Data indisponível";
   try {
     const dateObj = new Date(isoDateString);
-    const date = dateObj.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: '2-digit',
+    const date = dateObj.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
     });
-    const hours = dateObj.getHours().toString().padStart(2, '0');
-    const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+    const hours = dateObj.getHours().toString().padStart(2, "0");
+    const minutes = dateObj.getMinutes().toString().padStart(2, "0");
     return `${date} - ${hours}:${minutes}`;
   } catch (e) {
-    console.error('Error formatting modal date/time:', e);
-    return 'Data inválida';
+    console.error("Error formatting modal date/time:", e);
+    return "Data inválida";
   }
 };
 
 const formatDate = (isoDateString?: string): string => {
-  if (!isoDateString) return 'Data indisponível';
+  if (!isoDateString) return "Data indisponível";
   try {
     const dateObj = new Date(isoDateString);
-    return dateObj.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
+    return dateObj.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     });
   } catch (e) {
-    console.error('Error formatting date:', e);
-    return 'Data inválida';
+    console.error("Error formatting date:", e);
+    return "Data inválida";
   }
 };
 
 async function getAddressFromCoordinates(
   latitude?: number,
-  longitude?: number,
-): Promise<{ cardAddress: string, modalAddress: string }> {
+  longitude?: number
+): Promise<{ cardAddress: string; modalAddress: string }> {
   const fallback = {
-      cardAddress: 'Endereço não encontrado',
-      modalAddress: 'Endereço não encontrado',
+    cardAddress: "Endereço não encontrado",
+    modalAddress: "Endereço não encontrado",
   };
 
-  if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+  if (typeof latitude !== "number" || typeof longitude !== "number") {
     return {
-        cardAddress: 'Coordenadas inválidas',
-        modalAddress: 'Coordenadas inválidas',
+      cardAddress: "Coordenadas inválidas",
+      modalAddress: "Coordenadas inválidas",
     };
   }
 
   try {
-    const addresses = await Location.reverseGeocodeAsync({ latitude, longitude });
+    const addresses = await Location.reverseGeocodeAsync({
+      latitude,
+      longitude,
+    });
 
     if (addresses && addresses.length > 0) {
       const address = addresses[0];
-      
-      const cardAddress = [address.street, address.streetNumber, address.subregion]
-        .filter(Boolean)
-        .join(', ');
 
-      const modalAddress = [address.street, address.streetNumber].filter(Boolean).join(', ') + (address.district ? ` - ${address.district}` : '');
+      const cardAddress = [
+        address.street,
+        address.streetNumber,
+        address.subregion,
+      ]
+        .filter(Boolean)
+        .join(", ");
+
+      const modalAddress =
+        [address.street, address.streetNumber].filter(Boolean).join(", ") +
+        (address.district ? ` - ${address.district}` : "");
 
       return { cardAddress, modalAddress };
     } else {
       return fallback;
     }
   } catch (error) {
-    console.error('Erro ao buscar endereço:', error);
+    console.error("Erro ao buscar endereço:", error);
     return {
-        cardAddress: 'Não foi possível buscar o endereço',
-        modalAddress: 'Não foi possível buscar o endereço',
+      cardAddress: "Não foi possível buscar o endereço",
+      modalAddress: "Não foi possível buscar o endereço",
     };
   }
 }
 
-
-
-export default function LixoItem({ itemData }: LixoItemProps) { 
+export default function LixoItem({ itemData }: LixoItemProps) {
   const [mostrarModal, setMostrarModal] = useState(false);
-  const [cardAddress, setCardAddress] = useState<string>('Buscando endereço...'); 
-  const [modalAddress, setModalAddress] = useState<string>('Buscando endereço...'); 
+  const [zoomModalVisible, setZoomModalVisible] = useState(false);
 
+  const [cardAddress, setCardAddress] = useState<string>(
+    "Buscando endereço..."
+  );
+  const [modalAddress, setModalAddress] = useState<string>(
+    "Buscando endereço..."
+  );
+
+  const [containerLayout, setContainerLayout] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+  const [zoomContainerLayout, setZoomContainerLayout] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+
+  const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
 
   useEffect(() => {
     if (itemData && itemData.latitude != null && itemData.longitude != null) {
-      setCardAddress('Buscando endereço...');
-      setModalAddress('Buscando endereço...');
-      getAddressFromCoordinates(itemData.latitude, itemData.longitude)
-        .then(addresses => {
+      getAddressFromCoordinates(itemData.latitude, itemData.longitude).then(
+        (addresses) => {
           setCardAddress(addresses.cardAddress);
           setModalAddress(addresses.modalAddress);
-        })
-        .catch(err => {
-          console.error('Geocoding error in LixoItem:', err);
-          setCardAddress('Endereço não encontrado');
-          setModalAddress('Endereço não encontrado');
-        });
-    } else {
-      setCardAddress('Coordenadas indisponíveis');
-      setModalAddress('Coordenadas indisponíveis');
+        }
+      );
     }
-  }, [itemData])
 
+    if (itemData.base64) {
+      const uri = `data:image/jpeg;base64,${itemData.base64}`;
+      Image.getSize(
+        uri,
+        (width, height) => {
+          if (height > 0) setImageAspectRatio(width / height);
+        },
+        () => setImageAspectRatio(1)
+      );
+    }
+  }, [itemData]);
 
   if (!itemData) {
     return (
       <View className="h-[80px] justify-center items-center p-3 bg-gray-700 rounded-md my-1 w-full">
-        <Text className="text-gray-400 text-sm">Dados da detecção indisponíveis.</Text>
+        <Text className="text-gray-400 text-sm">
+          Dados da detecção indisponíveis.
+        </Text>
       </View>
     );
   }
 
+  // Lógica para a imagem pequena (no modal de detalhes)
+  let finalImageDimensions = { x: 0, y: 0, width: 0, height: 0 };
+  if (containerLayout && imageAspectRatio) {
+    const containerRatio = containerLayout.width / containerLayout.height;
+    if (containerRatio > imageAspectRatio) {
+      finalImageDimensions.height = containerLayout.height;
+      finalImageDimensions.width = containerLayout.height * imageAspectRatio;
+      finalImageDimensions.x =
+        (containerLayout.width - finalImageDimensions.width) / 2;
+      finalImageDimensions.y = 0;
+    } else {
+      finalImageDimensions.width = containerLayout.width;
+      finalImageDimensions.height = containerLayout.width / imageAspectRatio;
+      finalImageDimensions.x = 0;
+      finalImageDimensions.y =
+        (containerLayout.height - finalImageDimensions.height) / 2;
+    }
+  }
 
-  let color;
-  let simbolo;
-  let avisoStatus;
+  // Lógica para a imagem grande (no modal de zoom)
+  let finalZoomedImageDimensions = { x: 0, y: 0, width: 0, height: 0 };
+  if (zoomContainerLayout && imageAspectRatio) {
+    const containerRatio =
+      zoomContainerLayout.width / zoomContainerLayout.height;
+    if (containerRatio > imageAspectRatio) {
+      finalZoomedImageDimensions.height = zoomContainerLayout.height;
+      finalZoomedImageDimensions.width =
+        zoomContainerLayout.height * imageAspectRatio;
+      finalZoomedImageDimensions.x =
+        (zoomContainerLayout.width - finalZoomedImageDimensions.width) / 2;
+      finalZoomedImageDimensions.y = 0;
+    } else {
+      finalZoomedImageDimensions.width = zoomContainerLayout.width;
+      finalZoomedImageDimensions.height =
+        zoomContainerLayout.width / imageAspectRatio;
+      finalZoomedImageDimensions.x = 0;
+      finalZoomedImageDimensions.y =
+        (zoomContainerLayout.height - finalZoomedImageDimensions.height) / 2;
+    }
+  }
 
-  switch (itemData.status) { 
-    case 'Coletado':
-      color = '#45BF55';
-      simbolo = require('../../assets/images/ok_circle.png');
-      avisoStatus = 'Coleta realizada com sucesso!';
+  const transformPoints = (
+    points: number[][],
+    layout: { width: number; height: number; x: number; y: number }
+  ) => {
+    return points
+      .map(
+        (point) =>
+          `${point[0] * layout.width + layout.x},${
+            point[1] * layout.height + layout.y
+          }`
+      )
+      .join(" ");
+  };
+
+  let color, simbolo, avisoStatus;
+  switch (itemData.status) {
+    case "Coletado":
+      color = "#45BF55";
+      simbolo = require("../../assets/images/ok_circle.png");
+      avisoStatus = "Coleta realizada com sucesso!";
       break;
-    case 'Pendente':
-    case 'A coletar': 
-      color = '#DBF227';
-      simbolo = require('../../assets/images/pending_circle.png');
-      avisoStatus = 'Aguardando a coleta dos resíduos';
+    case "Pendente":
+    case "A coletar":
+      color = "#DBF227";
+      simbolo = require("../../assets/images/pending_circle.png");
+      avisoStatus = "Aguardando a coleta dos resíduos";
       break;
-    case 'Recusado':
-    case 'Recusada': 
-      color = '#F22742';
-      simbolo = require('../../assets/images/x_circle.png');
-      avisoStatus = 'A imagem não possui resíduos.';
+    case "Recusado":
+    case "Recusada":
+      color = "#F22742";
+      simbolo = require("../../assets/images/x_circle.png");
+      avisoStatus = "A imagem não possui resíduos.";
       break;
     default:
-      color = '#A6A6A6';
-      simbolo = require('../../assets/images/processing_circle.png');
-      avisoStatus = 'Status desconhecido...'; 
+      color = "#A6A6A6";
+      simbolo = require("../../assets/images/processing_circle.png");
+      avisoStatus = "Status desconhecido...";
   }
 
   const cardDate = formatDate(itemData.date_taken);
@@ -166,7 +243,7 @@ export default function LixoItem({ itemData }: LixoItemProps) {
             <View className="justify-center mr-2">
               <Image
                 className="rounded-sm bg-white w-16 h-16 object-cover"
-                source={{ uri: `data:image/jpeg;base64,${itemData.base64}`}}
+                source={{ uri: `data:image/jpeg;base64,${itemData.base64}` }}
               />
             </View>
           ) : (
@@ -175,9 +252,9 @@ export default function LixoItem({ itemData }: LixoItemProps) {
           <View className="flex-1 pt-1 pb-1">
             <Text
               style={{
-                color: '#FFFFFF',
+                color: "#FFFFFF",
                 fontSize: 16,
-                fontFamily: 'Nunito-Bold',
+                fontFamily: "Nunito-Bold",
               }}
               numberOfLines={1}
               ellipsizeMode="middle"
@@ -186,9 +263,9 @@ export default function LixoItem({ itemData }: LixoItemProps) {
             </Text>
             <Text
               style={{
-                color: '#FFFFFF',
+                color: "#FFFFFF",
                 fontSize: 14,
-                fontFamily: 'Nunito-Regular',
+                fontFamily: "Nunito-Regular",
                 marginVertical: 1,
               }}
               numberOfLines={1}
@@ -198,9 +275,9 @@ export default function LixoItem({ itemData }: LixoItemProps) {
             </Text>
             <Text
               style={{
-                color: '#A6A6A6',
+                color: "#A6A6A6",
                 fontSize: 12,
-                fontFamily: 'Nunito-Medium',
+                fontFamily: "Nunito-Medium",
               }}
             >
               {cardDate}
@@ -213,7 +290,7 @@ export default function LixoItem({ itemData }: LixoItemProps) {
               source={simbolo}
             />
             <Text
-              style={{ color, fontSize: 12, fontFamily: 'Nunito-Bold' }}
+              style={{ color, fontSize: 12, fontFamily: "Nunito-Bold" }}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -232,106 +309,211 @@ export default function LixoItem({ itemData }: LixoItemProps) {
         <View style={styles.overlay}>
           <View style={styles.modalView}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Foto #{itemData.id.substring(0, 5)}</Text>
-              <TouchableOpacity className="p-2" onPress={() => setMostrarModal(false)}>
+              <Text style={styles.modalTitle}>
+                Foto #{itemData.id.substring(0, 5)}
+              </Text>
+              <TouchableOpacity
+                className="p-2"
+                onPress={() => setMostrarModal(false)}
+              >
                 <Image
-                  source={require('../../assets/images/X.png')}
+                  source={require("../../assets/images/X.png")}
                   style={{ width: 14, height: 14 }}
                 />
               </TouchableOpacity>
             </View>
 
-            <View style={styles.imageContainer}>
-              {itemData.base64 && (
-                <Image
-                  style={{ width: '100%', height: '100%', borderRadius: 8 }}
-                  source={{ uri: `data:image/jpeg;base64,${itemData.base64}` }}
-                  resizeMode="contain"
-                />
-              )}
-            </View>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setZoomModalVisible(true)}
+            >
+              <View
+                style={styles.imageContainer}
+                onLayout={(event) => {
+                  const { width, height } = event.nativeEvent.layout;
+                  if (width > 0 && height > 0)
+                    setContainerLayout({ width, height });
+                }}
+              >
+                {itemData.base64 && (
+                  <Image
+                    style={{ width: "100%", height: "100%", borderRadius: 8 }}
+                    source={{
+                      uri: `data:image/jpeg;base64,${itemData.base64}`,
+                    }}
+                    resizeMode="contain"
+                  />
+                )}
+                {containerLayout &&
+                  imageAspectRatio &&
+                  itemData.detection_points && (
+                    <Svg
+                      height="100%"
+                      width="100%"
+                      style={StyleSheet.absoluteFill}
+                    >
+                      <ClipPath id="clip">
+                        <Rect
+                          x={finalImageDimensions.x}
+                          y={finalImageDimensions.y}
+                          width={finalImageDimensions.width}
+                          height={finalImageDimensions.height}
+                        />
+                      </ClipPath>
+                      <G clipPath="url(#clip)">
+                        {itemData.detection_points.map((detection, index) => (
+                          <Polygon
+                            key={index}
+                            points={transformPoints(
+                              detection.contour_normalized,
+                              finalImageDimensions
+                            )}
+                            fill="rgba(9, 199, 9, 0.192)"
+                            stroke="#45BF55"
+                            strokeWidth="2"
+                          />
+                        ))}
+                      </G>
+                    </Svg>
+                  )}
+              </View>
+            </TouchableOpacity>
 
             <View style={styles.modalContent}>
-                <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Endereço</Text>
-                    <Text style={styles.infoValue}>{modalAddress}</Text>
-                </View>
-                <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Data</Text>
-                    <Text style={styles.infoValue}>{modalDateTime}</Text>
-                </View>
-                <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Status</Text>
-                    <Text style={[styles.infoValue, { color: color, fontFamily: 'Nunito-Bold' }]}>{avisoStatus}</Text>
-                </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Endereço</Text>
+                <Text style={styles.infoValue}>{modalAddress}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Data</Text>
+                <Text style={styles.infoValue}>{modalDateTime}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Status</Text>
+                <Text
+                  style={[
+                    styles.infoValue,
+                    { color: color, fontFamily: "Nunito-Bold" },
+                  ]}
+                >
+                  {avisoStatus}
+                </Text>
+              </View>
             </View>
-
           </View>
         </View>
+      </Modal>
+
+      <Modal
+        visible={zoomModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setZoomModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.zoomOverlay}
+          activeOpacity={1}
+          onPress={() => setZoomModalVisible(false)}
+          onLayout={(event) => {
+            const { width, height } = event.nativeEvent.layout;
+            if (width > 0 && height > 0)
+              setZoomContainerLayout({ width, height });
+          }}
+        >
+          <Image
+            source={{ uri: `data:image/jpeg;base64,${itemData.base64}` }}
+            style={styles.zoomedImage}
+            resizeMode="contain"
+          />
+
+          {zoomContainerLayout &&
+            imageAspectRatio &&
+            itemData.detection_points && (
+              <Svg height="100%" width="100%" style={StyleSheet.absoluteFill}>
+                <ClipPath id="zoomClip">
+                  <Rect
+                    x={finalZoomedImageDimensions.x}
+                    y={finalZoomedImageDimensions.y}
+                    width={finalZoomedImageDimensions.width}
+                    height={finalZoomedImageDimensions.height}
+                  />
+                </ClipPath>
+                <G clipPath="url(#zoomClip)">
+                  {itemData.detection_points.map((detection, index) => (
+                    <Polygon
+                      key={index}
+                      points={transformPoints(
+                        detection.contour_normalized,
+                        finalZoomedImageDimensions
+                      )}
+                      fill="rgba(9, 199, 9, 0.192)"
+                      stroke="#45BF55"
+                      strokeWidth="2"
+                    />
+                  ))}
+                </G>
+              </Svg>
+            )}
+        </TouchableOpacity>
       </Modal>
     </View>
   );
 }
 
-
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.85)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalView: {
     margin: 20,
-    backgroundColor: '#262626',
+    backgroundColor: "#262626",
     borderRadius: 5,
-    width: '90%',
+    width: "90%",
     maxWidth: 400,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 15,
     paddingBottom: 10,
   },
-  modalTitle: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontFamily: 'Nunito-Bold',
-  },
+  modalTitle: { color: "#FFFFFF", fontSize: 18, fontFamily: "Nunito-Bold" },
   imageContainer: {
     height: 200,
     marginHorizontal: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    backgroundColor: '#404040',
+    backgroundColor: "#404040",
     paddingHorizontal: 20,
     paddingVertical: 15,
     marginTop: 15,
     borderRadius: 5,
   },
-  infoRow: {
-    marginBottom: 12,
-  },
+  infoRow: { marginBottom: 12 },
   infoLabel: {
-    color: '#D0D0D0',
+    color: "#D0D0D0",
     fontSize: 14,
-    fontFamily: 'Nunito-Bold',
+    fontFamily: "Nunito-Bold",
     marginBottom: 2,
   },
-  infoValue: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'Nunito-Regular',
+  infoValue: { color: "#FFFFFF", fontSize: 16, fontFamily: "Nunito-Regular" },
+  zoomOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.9)",
+    justifyContent: "center",
+    alignItems: "center",
   },
+  zoomedImage: { width: "100%", height: "100%" },
 });
