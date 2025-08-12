@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -98,16 +98,35 @@ async function getAddressFromCoordinates(
   }
 }
 
+const STATUS_COLORS = {
+  Coletado: {
+    color: "#45BF55",
+    simbolo: require("../../assets/images/ok_circle.png"),
+    avisoStatus: "Coleta realizada com sucesso!",
+  },
+  "A coletar": {
+    color: "#DBF227",
+    simbolo: require("../../assets/images/pending_circle.png"),
+    avisoStatus: "Aguardando a coleta dos resíduos",
+  },
+  Recusada: {
+    color: "#F22742",
+    simbolo: require("../../assets/images/x_circle.png"),
+    avisoStatus: "A imagem não possui resíduos.",
+  },
+  default: {
+    color: "#A6A6A6",
+    simbolo: require("../../assets/images/processing_circle.png"),
+    avisoStatus: "Status desconhecido...",
+  },
+};
+
 export default function LixoItem({ itemData }: LixoItemProps) {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [zoomModalVisible, setZoomModalVisible] = useState(false);
 
-  const [cardAddress, setCardAddress] = useState<string>(
-    "Buscando endereço..."
-  );
-  const [modalAddress, setModalAddress] = useState<string>(
-    "Buscando endereço..."
-  );
+  const [cardAddress, setCardAddress] = useState("Buscando endereço...");
+  const [modalAddress, setModalAddress] = useState("Buscando endereço...");
 
   const [containerLayout, setContainerLayout] = useState<{
     width: number;
@@ -153,84 +172,68 @@ export default function LixoItem({ itemData }: LixoItemProps) {
   }
 
   // Lógica para a imagem pequena (no modal de detalhes)
-  let finalImageDimensions = { x: 0, y: 0, width: 0, height: 0 };
-  if (containerLayout && imageAspectRatio) {
+  const finalImageDimensions = useMemo(() => {
+    if (!containerLayout || !imageAspectRatio)
+      return { x: 0, y: 0, width: 0, height: 0 };
     const containerRatio = containerLayout.width / containerLayout.height;
     if (containerRatio > imageAspectRatio) {
-      finalImageDimensions.height = containerLayout.height;
-      finalImageDimensions.width = containerLayout.height * imageAspectRatio;
-      finalImageDimensions.x =
-        (containerLayout.width - finalImageDimensions.width) / 2;
-      finalImageDimensions.y = 0;
+      const height = containerLayout.height;
+      const width = height * imageAspectRatio;
+      return { x: (containerLayout.width - width) / 2, y: 0, width, height };
     } else {
-      finalImageDimensions.width = containerLayout.width;
-      finalImageDimensions.height = containerLayout.width / imageAspectRatio;
-      finalImageDimensions.x = 0;
-      finalImageDimensions.y =
-        (containerLayout.height - finalImageDimensions.height) / 2;
+      const width = containerLayout.width;
+      const height = width / imageAspectRatio;
+      return { x: 0, y: (containerLayout.height - height) / 2, width, height };
     }
-  }
+  }, [containerLayout, imageAspectRatio]);
 
   // Lógica para a imagem grande (no modal de zoom)
-  let finalZoomedImageDimensions = { x: 0, y: 0, width: 0, height: 0 };
-  if (zoomContainerLayout && imageAspectRatio) {
+  const finalZoomedImageDimensions = useMemo(() => {
+    if (!zoomContainerLayout || !imageAspectRatio)
+      return { x: 0, y: 0, width: 0, height: 0 };
     const containerRatio =
       zoomContainerLayout.width / zoomContainerLayout.height;
     if (containerRatio > imageAspectRatio) {
-      finalZoomedImageDimensions.height = zoomContainerLayout.height;
-      finalZoomedImageDimensions.width =
-        zoomContainerLayout.height * imageAspectRatio;
-      finalZoomedImageDimensions.x =
-        (zoomContainerLayout.width - finalZoomedImageDimensions.width) / 2;
-      finalZoomedImageDimensions.y = 0;
+      const height = zoomContainerLayout.height;
+      const width = height * imageAspectRatio;
+      return {
+        x: (zoomContainerLayout.width - width) / 2,
+        y: 0,
+        width,
+        height,
+      };
     } else {
-      finalZoomedImageDimensions.width = zoomContainerLayout.width;
-      finalZoomedImageDimensions.height =
-        zoomContainerLayout.width / imageAspectRatio;
-      finalZoomedImageDimensions.x = 0;
-      finalZoomedImageDimensions.y =
-        (zoomContainerLayout.height - finalZoomedImageDimensions.height) / 2;
+      const width = zoomContainerLayout.width;
+      const height = width / imageAspectRatio;
+      return {
+        x: 0,
+        y: (zoomContainerLayout.height - height) / 2,
+        width,
+        height,
+      };
     }
-  }
+  }, [zoomContainerLayout, imageAspectRatio]);
 
-  const transformPoints = (
-    points: number[][],
-    layout: { width: number; height: number; x: number; y: number }
-  ) => {
-    return points
-      .map(
-        (point) =>
-          `${point[0] * layout.width + layout.x},${
-            point[1] * layout.height + layout.y
-          }`
-      )
-      .join(" ");
-  };
+  const transformPoints = useCallback(
+    (
+      points: number[][],
+      layout: { width: number; height: number; x: number; y: number }
+    ) =>
+      points
+        .map(
+          (point) =>
+            `${point[0] * layout.width + layout.x},${
+              point[1] * layout.height + layout.y
+            }`
+        )
+        .join(" "),
+    []
+  );
 
-  let color, simbolo, avisoStatus;
-  switch (itemData.status) {
-    case "Coletado":
-      color = "#45BF55";
-      simbolo = require("../../assets/images/ok_circle.png");
-      avisoStatus = "Coleta realizada com sucesso!";
-      break;
-    case "Pendente":
-    case "A coletar":
-      color = "#DBF227";
-      simbolo = require("../../assets/images/pending_circle.png");
-      avisoStatus = "Aguardando a coleta dos resíduos";
-      break;
-    case "Recusado":
-    case "Recusada":
-      color = "#F22742";
-      simbolo = require("../../assets/images/x_circle.png");
-      avisoStatus = "A imagem não possui resíduos.";
-      break;
-    default:
-      color = "#A6A6A6";
-      simbolo = require("../../assets/images/processing_circle.png");
-      avisoStatus = "Status desconhecido...";
-  }
+  const statusConfig =
+    STATUS_COLORS[itemData.status as keyof typeof STATUS_COLORS] ||
+    STATUS_COLORS.default;
+  const { color, simbolo, avisoStatus } = statusConfig;
 
   const cardDate = formatDate(itemData.date_taken);
   const modalDateTime = formatModalDateTime(itemData.date_taken);
@@ -306,10 +309,10 @@ export default function LixoItem({ itemData }: LixoItemProps) {
         animationType="fade"
         onRequestClose={() => setMostrarModal(false)}
       >
-        <View style={styles.overlay}>
-          <View style={styles.modalView}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
+        <View className="flex-1 bg-black/80 flex justify-center items-center">
+          <View className="m-5 bg-[#262626] rounded-md w-[90%] max-w-md shadow-lg shadow-black/25">
+            <View className="flex flex-row justify-between items-center px-5 pt-4 pb-2.5">
+              <Text className="text-white text-lg font-bold font-nunitoBold">
                 Foto #{itemData.id.substring(0, 5)}
               </Text>
               <TouchableOpacity
@@ -328,7 +331,7 @@ export default function LixoItem({ itemData }: LixoItemProps) {
               onPress={() => setZoomModalVisible(true)}
             >
               <View
-                style={styles.imageContainer}
+                className="h-48 mx-5 flex justify-center items-center"
                 onLayout={(event) => {
                   const { width, height } = event.nativeEvent.layout;
                   if (width > 0 && height > 0)
@@ -379,22 +382,30 @@ export default function LixoItem({ itemData }: LixoItemProps) {
               </View>
             </TouchableOpacity>
 
-            <View style={styles.modalContent}>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Endereço</Text>
-                <Text style={styles.infoValue}>{modalAddress}</Text>
+            <View className="bg-[#404040] px-5 py-4 mt-4 rounded-md">
+              <View className="mb-3">
+                <Text className="text-[#D0D0D0] text-sm font-bold font-nunito mb-0.5">
+                  Endereço
+                </Text>
+                <Text className="text-white text-base font-nunito">
+                  {modalAddress}
+                </Text>
               </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Data</Text>
-                <Text style={styles.infoValue}>{modalDateTime}</Text>
+              <View className="mb-3">
+                <Text className="text-[#D0D0D0] text-sm font-bold font-nunito mb-0.5">
+                  Data
+                </Text>
+                <Text className="text-white text-base font-nunito">
+                  {modalDateTime}
+                </Text>
               </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Status</Text>
+              <View className="mb-3">
+                <Text className="text-[#D0D0D0] text-sm font-nunito font-bold mb-0.5">
+                  Status
+                </Text>
                 <Text
-                  style={[
-                    styles.infoValue,
-                    { color: color, fontFamily: "Nunito-Bold" },
-                  ]}
+                  className="text-base font-nunito font-bold"
+                  style={{ color: color }}
                 >
                   {avisoStatus}
                 </Text>
@@ -411,7 +422,7 @@ export default function LixoItem({ itemData }: LixoItemProps) {
         onRequestClose={() => setZoomModalVisible(false)}
       >
         <TouchableOpacity
-          style={styles.zoomOverlay}
+          className="flex-1 bg-black bg-opacity-90 flex justify-center items-center"
           activeOpacity={1}
           onPress={() => setZoomModalVisible(false)}
           onLayout={(event) => {
@@ -421,8 +432,8 @@ export default function LixoItem({ itemData }: LixoItemProps) {
           }}
         >
           <Image
+            className="w-full h-full"
             source={{ uri: `data:image/jpeg;base64,${itemData.base64}` }}
-            style={styles.zoomedImage}
             resizeMode="contain"
           />
 
@@ -459,61 +470,3 @@ export default function LixoItem({ itemData }: LixoItemProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.85)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: "#262626",
-    borderRadius: 5,
-    width: "90%",
-    maxWidth: 400,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 15,
-    paddingBottom: 10,
-  },
-  modalTitle: { color: "#FFFFFF", fontSize: 18, fontFamily: "Nunito-Bold" },
-  imageContainer: {
-    height: 200,
-    marginHorizontal: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "#404040",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    marginTop: 15,
-    borderRadius: 5,
-  },
-  infoRow: { marginBottom: 12 },
-  infoLabel: {
-    color: "#D0D0D0",
-    fontSize: 14,
-    fontFamily: "Nunito-Bold",
-    marginBottom: 2,
-  },
-  infoValue: { color: "#FFFFFF", fontSize: 16, fontFamily: "Nunito-Regular" },
-  zoomOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.9)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  zoomedImage: { width: "100%", height: "100%" },
-});
