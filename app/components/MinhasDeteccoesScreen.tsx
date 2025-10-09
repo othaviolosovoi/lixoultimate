@@ -19,6 +19,28 @@ interface MinhasDeteccoesScreenProps {
   userId: string;
 }
 
+function getClassCounts(detection: WasteDetectionData) {
+  if (
+    detection.detection_points &&
+    typeof detection.detection_points === 'object' &&
+    !Array.isArray(detection.detection_points) &&
+    'class_counts' in detection.detection_points
+  ) {
+    return detection.detection_points.class_counts;
+  }
+  return { papel: 0, plastico: 0, vidro: 0, metal: 0 };
+}
+
+function isNewFormat(detection: WasteDetectionData): boolean {
+  return (
+    detection.detection_points !== undefined &&
+    detection.detection_points !== null &&
+    typeof detection.detection_points === 'object' &&
+    !Array.isArray(detection.detection_points) &&
+    'lixo_detections' in detection.detection_points
+  );
+}
+
 export default function MinhasDeteccoesScreen({
   userId,
 }: MinhasDeteccoesScreenProps) {
@@ -165,7 +187,11 @@ export default function MinhasDeteccoesScreen({
 
       <FlatList
         data={filteredDetections}
-        renderItem={({ item }) => <LixoItem itemData={item} />}
+        renderItem={({ item }) => (
+          <LixoItem 
+            itemData={item} 
+          />
+        )}
         keyExtractor={(item) => item.id}
         contentContainerStyle={parentStyles.listContentContainer}
         refreshControl={

@@ -121,6 +121,83 @@ const STATUS_COLORS = {
   },
 };
 
+const MATERIAL_ICONS: { [key: string]: string } = {
+  papel: "📄",
+  plastico: "🧴",
+  vidro: "🍾",
+  metal: "🥫",
+};
+
+function isNewFormat(detectionPoints: any): boolean {
+  return (
+    detectionPoints &&
+    typeof detectionPoints === "object" &&
+    !Array.isArray(detectionPoints) &&
+    "lixo_detections" in detectionPoints &&
+    "class_counts" in detectionPoints
+  );
+}
+
+function getAllContours(
+  detectionPoints: any
+): Array<{ contour: number[][]; className: string; color: string }> {
+  if (!detectionPoints) return [];
+
+  if (isNewFormat(detectionPoints)) {
+    const contours: Array<{
+      contour: number[][];
+      className: string;
+      color: string;
+    }> = [];
+
+    detectionPoints.lixo_detections.forEach((lixoDetection: any) => {
+      if (lixoDetection.lixo_contour) {
+        contours.push({
+          contour: lixoDetection.lixo_contour,
+          className: "lixo",
+          color: "#45BF55",
+        });
+      }
+
+      if (lixoDetection.sub_classes) {
+        lixoDetection.sub_classes.forEach((subClass: any) => {
+          const colorMap: { [key: string]: string } = {
+            papel: "#4A90E2",
+            plastico: "#F5A623",
+            vidro: "#7ED321",
+            metal: "#D0021B",
+          };
+
+          contours.push({
+            contour: subClass.contour,
+            className: subClass.class_name,
+            color: colorMap[subClass.class_name] || "#FFFFFF",
+          });
+        });
+      }
+    });
+
+    return contours;
+  }
+
+  if (Array.isArray(detectionPoints)) {
+    return detectionPoints.map((detection: any) => ({
+      contour: detection.contour_normalized,
+      className: detection.class_name || "lixo",
+      color: "#45BF55",
+    }));
+  }
+
+  return [];
+}
+
+function getClassCounts(detectionPoints: any) {
+  if (isNewFormat(detectionPoints)) {
+    return detectionPoints.class_counts;
+  }
+  return { papel: 0, plastico: 0, vidro: 0, metal: 0 };
+}
+
 export default function LixoItem({ itemData }: LixoItemProps) {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [zoomModalVisible, setZoomModalVisible] = useState(false);
@@ -138,6 +215,21 @@ export default function LixoItem({ itemData }: LixoItemProps) {
   } | null>(null);
 
   const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
+
+  const isNewFormatDetection = useMemo(
+    () => isNewFormat(itemData.detection_points),
+    [itemData.detection_points]
+  );
+
+  const classCounts = useMemo(
+    () => getClassCounts(itemData.detection_points),
+    [itemData.detection_points]
+  );
+
+  const allContours = useMemo(
+    () => getAllContours(itemData.detection_points),
+    [itemData.detection_points]
+  );
 
   useEffect(() => {
     if (itemData && itemData.latitude != null && itemData.longitude != null) {
@@ -171,7 +263,6 @@ export default function LixoItem({ itemData }: LixoItemProps) {
     );
   }
 
-  // Lógica para a imagem pequena (no modal de detalhes)
   const finalImageDimensions = useMemo(() => {
     if (!containerLayout || !imageAspectRatio)
       return { x: 0, y: 0, width: 0, height: 0 };
@@ -187,7 +278,6 @@ export default function LixoItem({ itemData }: LixoItemProps) {
     }
   }, [containerLayout, imageAspectRatio]);
 
-  // Lógica para a imagem grande (no modal de zoom)
   const finalZoomedImageDimensions = useMemo(() => {
     if (!zoomContainerLayout || !imageAspectRatio)
       return { x: 0, y: 0, width: 0, height: 0 };
@@ -238,6 +328,10 @@ export default function LixoItem({ itemData }: LixoItemProps) {
   const cardDate = formatDate(itemData.date_taken);
   const modalDateTime = formatModalDateTime(itemData.date_taken);
 
+  const hasMaterials = Object.values(classCounts).some(
+    (count) => (count as number) > 0
+  );
+
   return (
     <View className="mb-3">
       <TouchableOpacity onPress={() => setMostrarModal(true)}>
@@ -285,6 +379,19 @@ export default function LixoItem({ itemData }: LixoItemProps) {
             >
               {cardDate}
             </Text>
+            {isNewFormatDetection && (
+              <View className="mt-1">
+                <Text
+                  style={{
+                    color: "#008D80",
+                    fontSize: 10,
+                    fontFamily: "Nunito-Bold",
+                  }}
+                >
+                  ✨ Detecção Avançada
+                </Text>
+              </View>
+            )}
           </View>
           <View className="w-20 justify-center items-center pl-1">
             <Image
@@ -349,7 +456,7 @@ export default function LixoItem({ itemData }: LixoItemProps) {
                 )}
                 {containerLayout &&
                   imageAspectRatio &&
-                  itemData.detection_points && (
+                  allContours.length > 0 && (
                     <Svg
                       height="100%"
                       width="100%"
@@ -364,15 +471,15 @@ export default function LixoItem({ itemData }: LixoItemProps) {
                         />
                       </ClipPath>
                       <G clipPath="url(#clip)">
-                        {itemData.detection_points.map((detection, index) => (
+                        {allContours.map((contourData, index) => (
                           <Polygon
                             key={index}
                             points={transformPoints(
-                              detection.contour_normalized,
+                              contourData.contour,
                               finalImageDimensions
                             )}
-                            fill="rgba(9, 199, 9, 0.192)"
-                            stroke="#45BF55"
+                            fill={`${contourData.color}33`}
+                            stroke={contourData.color}
                             strokeWidth="2"
                           />
                         ))}
@@ -410,6 +517,41 @@ export default function LixoItem({ itemData }: LixoItemProps) {
                   {avisoStatus}
                 </Text>
               </View>
+
+              {/* Show material breakdown for new format detections */}
+              {isNewFormatDetection && hasMaterials && (
+                <View className="mb-3 pt-3 border-t border-[#555555]">
+                  <Text className="text-[#D0D0D0] text-sm font-bold font-nunito mb-2">
+                    Materiais Detectados
+                  </Text>
+                  <View className="flex flex-row flex-wrap gap-2">
+                    {Object.entries(classCounts).map(
+                      ([material, count]) =>
+                        (count as number) > 0 && (
+                          <View
+                            key={material}
+                            className="bg-[#333333] px-3 py-2 rounded-md flex flex-row items-center"
+                          >
+                            <Text className="text-base mr-1">
+                              {MATERIAL_ICONS[material]}
+                            </Text>
+                            <Text className="text-white text-sm font-nunito capitalize">
+                              {material}: {count as number}
+                            </Text>
+                          </View>
+                        )
+                    )}
+                  </View>
+                </View>
+              )}
+
+              {isNewFormatDetection && (
+                <View className="mt-2 bg-[#008D80] px-3 py-2 rounded-md self-start">
+                  <Text className="text-white text-xs font-nunitoBold">
+                    ✨ Detecção Avançada com IA
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -439,7 +581,7 @@ export default function LixoItem({ itemData }: LixoItemProps) {
 
           {zoomContainerLayout &&
             imageAspectRatio &&
-            itemData.detection_points && (
+            allContours.length > 0 && (
               <Svg height="100%" width="100%" style={StyleSheet.absoluteFill}>
                 <ClipPath id="zoomClip">
                   <Rect
@@ -450,16 +592,16 @@ export default function LixoItem({ itemData }: LixoItemProps) {
                   />
                 </ClipPath>
                 <G clipPath="url(#zoomClip)">
-                  {itemData.detection_points.map((detection, index) => (
+                  {allContours.map((contourData, index) => (
                     <Polygon
                       key={index}
                       points={transformPoints(
-                        detection.contour_normalized,
+                        contourData.contour,
                         finalZoomedImageDimensions
                       )}
-                      fill="rgba(9, 199, 9, 0.192)"
-                      stroke="#45BF55"
-                      strokeWidth="2"
+                      fill={`${contourData.color}33`}
+                      stroke={contourData.color}
+                      strokeWidth="3"
                     />
                   ))}
                 </G>
