@@ -379,19 +379,6 @@ export default function LixoItem({ itemData }: LixoItemProps) {
             >
               {cardDate}
             </Text>
-            {isNewFormatDetection && (
-              <View className="mt-1">
-                <Text
-                  style={{
-                    color: "#008D80",
-                    fontSize: 10,
-                    fontFamily: "Nunito-Bold",
-                  }}
-                >
-                  ✨ Detecção Avançada
-                </Text>
-              </View>
-            )}
           </View>
           <View className="w-20 justify-center items-center pl-1">
             <Image

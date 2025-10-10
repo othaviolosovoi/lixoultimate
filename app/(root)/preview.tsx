@@ -35,10 +35,12 @@ export default function Preview({
       return;
     }
 
-    console.log(
-      "Sending POST request to:",
-      `${SERVER_URL_CLASSIFICATION}/classify`
-    );
+    Toast.show({
+      type: "info",
+      text1: "Processando... ⏳",
+      text2: "Sua foto está sendo analisada.",
+      autoHide: false,
+    });
 
     fetch(`${SERVER_URL_CLASSIFICATION}/classify`, {
       method: "POST",
@@ -55,20 +57,21 @@ export default function Preview({
           throw new Error(errorMessage);
         }
         const result = await response.json();
-        console.log("POST response received in background:", result);
 
+        Toast.hide();
         Toast.show({
           type: "success",
-          text1: "Enviado com Sucesso! ✅",
-          text2: "Sua foto foi enviada para análise.",
+          text1: "Sucesso! ✅",
+          text2: "Sua foto foi analisada.",
         });
       })
       .catch((error) => {
         console.error("Error sending POST request in background:", error);
 
+        Toast.hide();
         Toast.show({
           type: "error",
-          text1: "Erro ao Enviar 😥",
+          text1: "Erro ao Enviar ❌",
           text2: error.message || "Não foi possível conectar ao servidor.",
         });
       });

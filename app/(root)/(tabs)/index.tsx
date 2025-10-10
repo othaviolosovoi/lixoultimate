@@ -14,6 +14,7 @@ import { Redirect, router } from "expo-router";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Header from "../../components/header";
 import Permission from "../../components/permission";
+import * as Location from "expo-location";
 import {
   takePicture,
   renderPicture,
@@ -24,23 +25,31 @@ const SERVER_URL_ACTIVE = process.env.EXPO_PUBLIC_SERVER_URL_CLASSIFICATION;
 
 export default function Index() {
   const { user, session, signout, loading } = useAuth();
-  const [permission, requestPermission] = useCameraPermissions();
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [locationPermission, setLocationPermission] =
+    useState<Location.PermissionResponse | null>(null);
   const ref = useRef<CameraView>(null);
   const [uri, setUri] = useState<string | null>(null);
   const [image, setImage] = useState<string | null>(null);
   const [jsonResult, setJsonResult] = useState<object | null>(null);
 
   useEffect(() => {
+    (async () => {
+      const locPerm = await Location.getForegroundPermissionsAsync();
+      setLocationPermission(locPerm);
+    })();
+  }, []);
+
+  useEffect(() => {
     const notifyUserActive = (userId: string) => {
       try {
         fetch(`${SERVER_URL_ACTIVE}/user_active`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ userId: userId }),
         });
-        console.log(`Notificação de atividade enviada para o usuário: ${userId}`);
       } catch (error) {
         console.error("Erro ao tentar enviar notificação de atividade:", error);
       }
@@ -51,12 +60,32 @@ export default function Index() {
     }
   }, [user]);
 
-  if (!permission) {
+  if (!cameraPermission || !locationPermission) {
     return null;
   }
 
-  if (!permission.granted) {
-    return <Permission requestPermission={requestPermission} />;
+  if (!cameraPermission.granted || !locationPermission.granted) {
+    const requestBothPermissions = async () => {
+      if (!cameraPermission.granted) {
+        const result = await requestCameraPermission();
+      }
+
+      if (!locationPermission.granted) {
+        const locPerm = await Location.requestForegroundPermissionsAsync();
+        setLocationPermission(locPerm);
+      }
+    };
+
+    return (
+      <Permission
+        requestPermission={requestBothPermissions}
+        cameraGranted={cameraPermission.granted}
+        locationGranted={locationPermission.granted}
+        canAskAgain={
+          cameraPermission.canAskAgain && locationPermission.canAskAgain
+        }
+      />
+    );
   }
 
   if (loading) {
@@ -94,7 +123,10 @@ export default function Index() {
           mute={false}
           responsiveOrientationWhenOrientationLocked
         >
-          <TouchableOpacity onPress={() => router.push("/(root)/(tabs)/help")} className="bg-[#0d0d0d86] rounded-full w-12 h-12 items-center justify-center absolute top-4 left-4">
+          <TouchableOpacity
+            onPress={() => router.push("/(root)/(tabs)/help")}
+            className="bg-[#0d0d0d86] rounded-full w-12 h-12 items-center justify-center absolute top-4 left-4"
+          >
             <MaterialIcons name="question-mark" size={24} color="white" />
           </TouchableOpacity>
           <View className="absolute bottom-0 left-0 w-full">
