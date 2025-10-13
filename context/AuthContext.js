@@ -139,33 +139,47 @@ const AuthProvider = ({ children }) => {
   const googleLogin = async () => {
     setLoading(true);
     try {
-      let redirectUri = Linking.createURL("/");
+      let redirectUri = Linking.createURL("localhost");
       console.log("Initial Redirect URI:", redirectUri);
 
-      if (!redirectUri.includes("localhost")) {
-        redirectUri = redirectUri.replace(
-          "lixoultimate:///",
-          "lixoultimate://localhost/"
-        );
+      // For standalone builds, use backend redirect that works with Appwrite
+      let appwriteRedirectUri = redirectUri;
+      if (!redirectUri.includes("exp://")) {
+        appwriteRedirectUri = "http://136.248.96.42:5000/auth/callback";
       }
-      console.log("Modified Redirect URI:", redirectUri);
+      console.log("Appwrite Redirect URI:", appwriteRedirectUri);
+      console.log("App Deep Link URI:", redirectUri);
 
       const response = await account.createOAuth2Token(
         OAuthProvider.Google,
-        redirectUri
+        appwriteRedirectUri
       );
 
       if (!response) throw new Error("Failed to login");
 
+      console.log("Opening OAuth browser with URL:", response.toString());
+
+      // For standalone builds, tell the browser to expect the deep link redirect
       const browserResult = await openAuthSessionAsync(
         response.toString(),
-        redirectUri
+        redirectUri // Use the deep link URI here, not the backend URI
       );
 
+      console.log("Browser result type:", browserResult.type);
+      console.log("Browser result URL:", browserResult.url);
+
       if (browserResult.type !== "success") {
+        console.log("Browser result failed:", browserResult);
+        // For standalone builds, even if dismiss, the deep link might have worked
+        if (!redirectUri.includes("exp://")) {
+          console.log("Standalone build - deep link may have triggered anyway");
+          // Don't throw error, let the deep link handler take over
+          return;
+        }
         throw new Error("Failed to login with Google");
       }
 
+      // Handle OAuth callback for both Expo Go and standalone
       const url = new URL(browserResult.url);
       const secret = url.searchParams.get("secret")?.toString();
       const userId = url.searchParams.get("userId")?.toString();
@@ -174,15 +188,21 @@ const AuthProvider = ({ children }) => {
         throw new Error("Failed to retrieve secret or userId from URL");
       }
 
+      console.log("Creating session with userId:", userId);
+
       // Create a session with the retrieved userId and secret
       const session = await account.createSession(userId, secret);
 
       if (!session) throw new Error("Failed to create session");
 
+      console.log("Session created successfully");
+
       // Fetch the authenticated user
       const responseUser = await account.get();
       setUser(responseUser);
       setSession(session);
+
+      console.log("User authenticated:", responseUser.email);
     } catch (error) {
       console.log("Google login error:", error.message);
       throw new Error("Erro ao fazer login com Google. Tente novamente.");
@@ -239,6 +259,9 @@ const AuthProvider = ({ children }) => {
     googleLogin,
     resetPassword,
     loading,
+    setLoading,
+    setUser,
+    setSession,
   };
 
   return (
