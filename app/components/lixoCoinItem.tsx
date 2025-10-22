@@ -33,6 +33,7 @@ export default function LixoCoinItem({ date, status }: LixoCoinItemProps) {
 
     switch (status) {
         case 'Coletado':
+        case 'Não encontrado':
             transactionValue = 100;
             valueColor = '#45BF55';
             valueColor2 = '#008D80';

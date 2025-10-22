@@ -34,8 +34,15 @@ export default function LixoCoins() {
                     throw new Error(`Erro ao buscar o histórico: ${detectionsResponse.status}`);
                 }
                 const detectionsData: WasteDetectionData[] = await detectionsResponse.json();
-                detectionsData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-                setDetections(detectionsData);
+                
+                // Converter status "Não encontrado" para "Coletado"
+                const normalizedDetections = detectionsData.map(detection => ({
+                    ...detection,
+                    status: detection.status === "Não encontrado" ? "Coletado" : detection.status
+                }));
+                
+                normalizedDetections.sort((a, b) => new Date(b.date_taken).getTime() - new Date(a.date_taken).getTime());
+                setDetections(normalizedDetections);
 
                 if (!userResponse.ok) {
                     throw new Error(`Erro ao buscar as moedas: ${userResponse.status}`);

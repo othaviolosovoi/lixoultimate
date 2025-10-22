@@ -84,7 +84,14 @@ export default function MinhasDeteccoesScreen({
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data: WasteDetectionData[] = await response.json();
-        setAllDetections(data);
+        
+        // Converter status "Não encontrado" para "Coletado"
+        const normalizedData = data.map(detection => ({
+          ...detection,
+          status: detection.status === "Não encontrado" ? "Coletado" : detection.status
+        }));
+        
+        setAllDetections(normalizedData);
       } catch (err) {
         console.error("Failed to fetch user detections:", err);
         setError(
@@ -138,16 +145,38 @@ export default function MinhasDeteccoesScreen({
 
   if (error) {
     return (
-      <SafeAreaView style={parentStyles.containerCentered}>
-        <Text style={parentStyles.errorText}>Erro ao carregar: {error}</Text>
-      </SafeAreaView>
-    );
-  }
-
-  if (allDetections.length === 0) {
-    return (
-      <SafeAreaView style={parentStyles.containerCentered}>
-        <Text style={parentStyles.emptyText}>Nenhuma detecção encontrada.</Text>
+      <SafeAreaView style={parentStyles.container} className="border-t border-gray-700">
+        <View className="w-full px-4 pt-4">
+          <View className="rounded-md items-start">
+            <Text
+              style={{
+                color: "#FFFFFF",
+                fontSize: 24,
+                fontFamily: "Poppins-Bold",
+              }}
+            >
+              Meu Histórico
+            </Text>
+          </View>
+        </View>
+        <FlatList
+          data={[]}
+          renderItem={() => null}
+          contentContainerStyle={parentStyles.listContentContainer}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              tintColor="#A0A0A0"
+              colors={["#A0A0A0"]}
+            />
+          }
+          ListEmptyComponent={
+            <View style={parentStyles.emptyContainer}>
+              <Text style={parentStyles.errorText}>Erro ao carregar: {error}</Text>
+            </View>
+          }
+        />
       </SafeAreaView>
     );
   }
@@ -203,9 +232,11 @@ export default function MinhasDeteccoesScreen({
           />
         }
         ListEmptyComponent={
-          <View style={parentStyles.containerCentered}>
+          <View style={parentStyles.emptyContainer}>
             <Text style={parentStyles.emptyText}>
-              Nenhuma detecção encontrada para este filtro.
+              {allDetections.length === 0 
+                ? "Nenhuma detecção encontrada." 
+                : "Nenhuma detecção encontrada para este filtro."}
             </Text>
           </View>
         }
@@ -226,7 +257,14 @@ const parentStyles = StyleSheet.create({
     backgroundColor: "#0d0d0d",
     padding: 20,
   },
+  emptyContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+    minHeight: 300,
+  },
   listContentContainer: {
+    flexGrow: 1,
     paddingHorizontal: 10,
     paddingTop: 10,
     paddingBottom: 120,

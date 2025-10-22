@@ -104,6 +104,11 @@ const STATUS_COLORS = {
     simbolo: require("../../assets/images/ok_circle.png"),
     avisoStatus: "Coleta realizada com sucesso!",
   },
+  "Não encontrado": {
+    color: "#45BF55",
+    simbolo: require("../../assets/images/ok_circle.png"),
+    avisoStatus: "Coleta realizada com sucesso!",
+  },
   "A coletar": {
     color: "#DBF227",
     simbolo: require("../../assets/images/pending_circle.png"),
