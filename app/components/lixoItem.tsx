@@ -104,6 +104,11 @@ const STATUS_COLORS = {
     simbolo: require("../../assets/images/ok_circle.png"),
     avisoStatus: "Coleta realizada com sucesso!",
   },
+  "Não encontrado": {
+    color: "#45BF55",
+    simbolo: require("../../assets/images/ok_circle.png"),
+    avisoStatus: "Coleta realizada com sucesso!",
+  },
   "A coletar": {
     color: "#DBF227",
     simbolo: require("../../assets/images/pending_circle.png"),
@@ -122,10 +127,10 @@ const STATUS_COLORS = {
 };
 
 const MATERIAL_ICONS: { [key: string]: string } = {
-  papel: "📄",
-  plastico: "🧴",
-  vidro: "🍾",
-  metal: "🥫",
+  papel: "🔵",     // Azul - #4A90E2
+  plastico: "🔴",  // Vermelho - #D0021B
+  vidro: "🟢",     // Verde - #7ED321
+  metal: "🟡",     // Laranja - #F5A623
 };
 
 function isNewFormat(detectionPoints: any): boolean {
@@ -151,21 +156,26 @@ function getAllContours(
     }> = [];
 
     detectionPoints.lixo_detections.forEach((lixoDetection: any) => {
-      if (lixoDetection.lixo_contour) {
+      const hasSubClasses = lixoDetection.sub_classes && lixoDetection.sub_classes.length > 0;
+      
+      // Só adiciona o contorno "lixo" se NÃO houver subclasses
+      if (lixoDetection.lixo_contour && !hasSubClasses) {
         contours.push({
           contour: lixoDetection.lixo_contour,
           className: "lixo",
-          color: "#45BF55",
+          color: "#8a13cfff",
         });
       }
 
-      if (lixoDetection.sub_classes) {
+      // Adiciona os contornos das subclasses quando existirem
+      if (hasSubClasses) {
         lixoDetection.sub_classes.forEach((subClass: any) => {
           const colorMap: { [key: string]: string } = {
             papel: "#4A90E2",
-            plastico: "#F5A623",
+            plastico: "#D0021B",
             vidro: "#7ED321",
-            metal: "#D0021B",
+            metal: "#f5e023ff",
+            
           };
 
           contours.push({
@@ -192,10 +202,22 @@ function getAllContours(
 }
 
 function getClassCounts(detectionPoints: any) {
-  if (isNewFormat(detectionPoints)) {
-    return detectionPoints.class_counts;
+  const defaultCounts = { papel: 0, plastico: 0, vidro: 0, metal: 0 };
+  
+  if (isNewFormat(detectionPoints) && detectionPoints.class_counts) {
+    // Start with default counts and override with actual values
+    const result = { ...defaultCounts };
+    
+    // Only update counts that exist in class_counts
+    Object.keys(defaultCounts).forEach((material) => {
+      if (material in detectionPoints.class_counts) {
+        result[material as keyof typeof defaultCounts] = detectionPoints.class_counts[material];
+      }
+    });
+    
+    return result;
   }
-  return { papel: 0, plastico: 0, vidro: 0, metal: 0 };
+  return defaultCounts;
 }
 
 export default function LixoItem({ itemData }: LixoItemProps) {
@@ -225,6 +247,12 @@ export default function LixoItem({ itemData }: LixoItemProps) {
     () => getClassCounts(itemData.detection_points),
     [itemData.detection_points]
   );
+
+  // Debug: Log classCounts to verify all materials are present
+  useEffect(() => {
+    console.log('ClassCounts:', classCounts);
+    console.log('ClassCounts keys:', Object.keys(classCounts));
+  }, [classCounts]);
 
   const allContours = useMemo(
     () => getAllContours(itemData.detection_points),
@@ -512,22 +540,19 @@ export default function LixoItem({ itemData }: LixoItemProps) {
                     Materiais Detectados
                   </Text>
                   <View className="flex flex-row flex-wrap gap-2">
-                    {Object.entries(classCounts).map(
-                      ([material, count]) =>
-                        (count as number) > 0 && (
-                          <View
-                            key={material}
-                            className="bg-[#333333] px-3 py-2 rounded-md flex flex-row items-center"
-                          >
-                            <Text className="text-base mr-1">
-                              {MATERIAL_ICONS[material]}
-                            </Text>
-                            <Text className="text-white text-sm font-nunito capitalize">
-                              {material}: {count as number}
-                            </Text>
-                          </View>
-                        )
-                    )}
+                    {['papel', 'plastico', 'vidro', 'metal'].map((material) => (
+                      <View
+                        key={material}
+                        className="bg-[#333333] px-3 py-2 rounded-md flex flex-row items-center"
+                      >
+                        <Text className="text-base mr-1">
+                          {MATERIAL_ICONS[material]}
+                        </Text>
+                        <Text className="text-white text-sm font-nunito capitalize">
+                          {material}: {classCounts[material as keyof typeof classCounts] || 0}
+                        </Text>
+                      </View>
+                    ))}
                   </View>
                 </View>
               )}

@@ -59,7 +59,7 @@ export default function Achievements() {
           const statusCounter = detectionsData.reduce(
             (acc, item) => {
               const status = item.status;
-              if (status === "Coletado") {
+              if (status === "Coletado" || status === "Não encontrado") {
                 acc.collected++;
               } else if (status === "A coletar" || status === "Pendente") {
                 acc.pending++;
