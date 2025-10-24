@@ -50,8 +50,8 @@ export default function LixoCoins() {
                 const userData = await userResponse.json();
                 setCoins(userData.coins || 0);
 
-                console.log("Dados do usuário:", userData);
-                console.log("Histórico de detecções:", detectionsData);
+                // console.log("Dados do usuário:", userData);
+                // console.log("Histórico de detecções:", detectionsData);
 
             } catch (err) {
                 console.error("Erro ao buscar dados para LixoCoins:", err);

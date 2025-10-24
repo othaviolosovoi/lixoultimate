@@ -250,8 +250,8 @@ export default function LixoItem({ itemData }: LixoItemProps) {
 
   // Debug: Log classCounts to verify all materials are present
   useEffect(() => {
-    console.log('ClassCounts:', classCounts);
-    console.log('ClassCounts keys:', Object.keys(classCounts));
+    // console.log('ClassCounts:', classCounts);
+    // console.log('ClassCounts keys:', Object.keys(classCounts));
   }, [classCounts]);
 
   const allContours = useMemo(
