@@ -91,7 +91,14 @@ export default function MinhasDeteccoesScreen({
           status: detection.status === "Não encontrado" ? "Coletado" : detection.status
         }));
         
-        setAllDetections(normalizedData);
+        // Ordenar do mais recente para o mais antigo
+        const sortedData = normalizedData.sort((a, b) => {
+          const dateA = new Date(a.date_taken).getTime();
+          const dateB = new Date(b.date_taken).getTime();
+          return dateB - dateA; // Mais recentes primeiro
+        });
+        
+        setAllDetections(sortedData);
       } catch (err) {
         console.error("Failed to fetch user detections:", err);
         setError(
