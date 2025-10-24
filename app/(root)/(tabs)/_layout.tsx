@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { usePathname } from "expo-router";
 
 const TabIcon = ({
   focused,
@@ -52,88 +53,96 @@ const TabIcon = ({
 };
 
 const TabsLayout = () => {
+    const pathname = usePathname();
+    const isHelpTab = pathname === "/help";
+
+
   return (
-    <Tabs
-      screenOptions={{
-        tabBarShowLabel: false,
-        tabBarItemStyle: {
-          flex: 1,
-          width: "100%",
-          height: "100%",
-          justifyContent: "center",
-          alignItems: "center",
-        },
-        tabBarStyle: {
-          backgroundColor: "#262626",
-          borderTopWidth: 1,
-          position: "absolute",
-          marginBottom: 24,
-          minHeight: 72,
-          marginHorizontal: 16,
-          borderRadius: 50,
-          overflow: "hidden",
-          borderWidth: 2,
-          borderColor: "#262626",
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Reportar",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon
-              focused={focused}
-              icon={<FontAwesome name="camera" />}
-              title="Reportar"
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="history"
-        options={{
-          title: "Histórico",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon
-              focused={focused}
-              icon={<MaterialCommunityIcons name="clipboard-text-clock" />}
-              title="Histórico"
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="achievements"
-        options={{
-          title: "Conquistas",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon
-              focused={focused}
-              icon={<FontAwesome name="trophy" />}
-              title="Conquistas"
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="help"
-        options={{
-          title: "Ajuda",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon
-              focused={focused}
-              icon={<MaterialIcons name="help-center" />}
-              title="Ajuda"
-            />
-          ),
-        }}
-      />
-    </Tabs>
+      <View style={{ flex: 1, backgroundColor: "#0D0D0D" }}>
+          <Tabs
+              screenOptions={{
+                  tabBarShowLabel: false,
+                  tabBarItemStyle: {
+                      flex: 1,
+                      width: "100%",
+                      height: "100%",
+                      justifyContent: "center",
+                      alignItems: "center",
+                  },
+                  tabBarStyle: {
+                      backgroundColor: "#262626",
+                      borderTopWidth: 1,
+                      position: isHelpTab ? "relative" : "absolute",
+                      marginBottom: 24,
+                      minHeight: 72,
+                      marginHorizontal: 16,
+                      borderRadius: 50,
+                      overflow: "hidden",
+                      borderWidth: 2,
+                      borderColor: "#262626",
+                  },
+              }}
+          >
+              <Tabs.Screen
+                  name="index"
+                  options={{
+                      title: "Reportar",
+                      headerShown: false,
+                      tabBarIcon: ({ focused }) => (
+                          <TabIcon
+                              focused={focused}
+                              icon={<FontAwesome name="camera" />}
+                              title="Reportar"
+                          />
+                      ),
+                  }}
+              />
+              <Tabs.Screen
+                  name="history"
+                  options={{
+                      title: "Histórico",
+                      headerShown: false,
+                      tabBarIcon: ({ focused }) => (
+                          <TabIcon
+                              focused={focused}
+                              icon={<MaterialCommunityIcons name="clipboard-text-clock" />}
+                              title="Histórico"
+                          />
+                      ),
+                  }}
+              />
+              <Tabs.Screen
+                  name="achievements"
+                  options={{
+                      title: "Conquistas",
+                      headerShown: false,
+                      tabBarIcon: ({ focused }) => (
+                          <TabIcon
+                              focused={focused}
+                              icon={<FontAwesome name="trophy" />}
+                              title="Conquistas"
+                          />
+                      ),
+                  }}
+              />
+              <Tabs.Screen
+                  name="help"
+                  options={{
+                      title: "Ajuda",
+                      headerShown: false,
+                      tabBarIcon: ({ focused }) => (
+                          <TabIcon
+                              focused={focused}
+                              icon={<MaterialIcons name="help-center" />}
+                              title="Ajuda"
+                          />
+                      ),
+                  }}
+              />
+          </Tabs>
+
+      </View>
+
   );
 };
 
