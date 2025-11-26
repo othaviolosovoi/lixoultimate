@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Slot, SplashScreen } from "expo-router";
 import { AuthProvider } from "../context/AuthContext";
+import { CoinsProvider } from "../context/CoinsContext";
 import { StatusBar } from "react-native";
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
@@ -35,8 +36,10 @@ export default function RootLayout() {
       <SafeAreaView style={{ flex: 1 }}>
         <StatusBar barStyle="light-content" backgroundColor="#0d0d0d" />
         <AuthProvider>
-          <Slot />
-          <Toast />
+          <CoinsProvider>
+            <Slot />
+            <Toast />
+          </CoinsProvider>
         </AuthProvider>
       </SafeAreaView>
     </ErrorBoundary>

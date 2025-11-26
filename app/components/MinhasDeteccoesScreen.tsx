@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   ActivityIndicator,
-  StyleSheet,
   SafeAreaView,
   RefreshControl,
 } from "react-native";
@@ -44,13 +43,14 @@ function isNewFormat(detection: WasteDetectionData): boolean {
 export default function MinhasDeteccoesScreen({
   userId,
 }: MinhasDeteccoesScreenProps) {
-  const [allDetections, setAllDetections] = useState<WasteDetectionData[]>([]);
+  const [detections, setDetections] = useState<WasteDetectionData[]>([]);
   const [filteredDetections, setFilteredDetections] = useState<
     WasteDetectionData[]
   >([]);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [filterValue, setFilterValue] = useState("Todos");
@@ -60,29 +60,50 @@ export default function MinhasDeteccoesScreen({
     { label: "A coletar", value: "A coletar" },
     { label: "Recusado", value: "Recusado" },
   ]);
+  
+  // Paginação
+  const PAGE_SIZE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreData, setHasMoreData] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const [allDataCache, setAllDataCache] = useState<WasteDetectionData[]>([]);
 
   const fetchUserDetections = useCallback(
-    async (isInitialLoad = false) => {
+    async (page: number, isRefresh = false) => {
       if (!userId) {
         setError("ID do usuário não fornecido.");
-        if (isInitialLoad) setIsLoading(false);
+        setIsLoading(false);
         return;
       }
 
-      if (isInitialLoad) {
-        setIsLoading(true);
+      if (page === 1) {
+        if (isRefresh) {
+          setIsRefreshing(true);
+        } else {
+          setIsLoading(true);
+        }
       } else {
-        setIsRefreshing(true);
+        setIsLoadingMore(true);
       }
       setError(null);
 
       try {
+        // Usar paginação do backend com skip e limit
+        const skip = (page - 1) * PAGE_SIZE;
         const response = await fetch(
-          `${SERVER_URL_DATABASE}/detections/user/${userId}/`
+          `${SERVER_URL_DATABASE}/detections/user/${userId}?skip=${skip}&limit=${PAGE_SIZE}`
         );
+        
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        // Pegar total count do header
+        const totalCountHeader = response.headers.get('X-Total-Count');
+        if (totalCountHeader) {
+          setTotalCount(parseInt(totalCountHeader, 10));
+        }
+        
         const data: WasteDetectionData[] = await response.json();
         
         // Converter status "Não encontrado" para "Coletado"
@@ -91,14 +112,18 @@ export default function MinhasDeteccoesScreen({
           status: detection.status === "Não encontrado" ? "Coletado" : detection.status
         }));
         
-        // Ordenar do mais recente para o mais antigo
-        const sortedData = normalizedData.sort((a, b) => {
-          const dateA = new Date(a.date_taken).getTime();
-          const dateB = new Date(b.date_taken).getTime();
-          return dateB - dateA; // Mais recentes primeiro
-        });
+        if (page === 1) {
+          setDetections(normalizedData);
+          setAllDataCache(normalizedData);
+        } else {
+          setDetections(prev => [...prev, ...normalizedData]);
+          setAllDataCache(prev => [...prev, ...normalizedData]);
+        }
         
-        setAllDetections(sortedData);
+        // Verificar se há mais dados
+        setHasMoreData(normalizedData.length === PAGE_SIZE);
+        
+        console.log(`Página ${page}: ${normalizedData.length} itens (total: ${totalCountHeader || 'desconhecido'})`);
       } catch (err) {
         console.error("Failed to fetch user detections:", err);
         setError(
@@ -107,24 +132,23 @@ export default function MinhasDeteccoesScreen({
             : "Ocorreu um erro desconhecido ao buscar detecções."
         );
       } finally {
-        if (isInitialLoad) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
         setIsRefreshing(false);
+        setIsLoadingMore(false);
       }
     },
-    [userId]
+    [userId, PAGE_SIZE]
   );
 
   useEffect(() => {
-    fetchUserDetections(true);
+    fetchUserDetections(1);
   }, [fetchUserDetections]);
 
   useEffect(() => {
     if (filterValue === "Todos") {
-      setFilteredDetections(allDetections);
+      setFilteredDetections(detections);
     } else {
-      const filtered = allDetections.filter((item) => {
+      const filtered = detections.filter((item) => {
         if (filterValue === "A coletar") {
           return item.status === "A coletar" || item.status === "Pendente";
         }
@@ -135,33 +159,48 @@ export default function MinhasDeteccoesScreen({
       });
       setFilteredDetections(filtered);
     }
-  }, [filterValue, allDetections]);
+  }, [filterValue, detections]);
 
   const onRefresh = () => {
-    fetchUserDetections(false);
+    setCurrentPage(1);
+    setHasMoreData(true);
+    setAllDataCache([]);
+    fetchUserDetections(1, true);
   };
+
+  const loadMoreItems = () => {
+    if (!isLoadingMore && hasMoreData && filterValue === "Todos") {
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      fetchUserDetections(nextPage);
+    }
+  };
+
+  // Otimização: getItemLayout para melhor performance do FlatList
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: 120, // Altura aproximada de cada item
+      offset: 120 * index,
+      index,
+    }),
+    []
+  );
 
   if (isLoading) {
     return (
-      <SafeAreaView style={parentStyles.containerCentered}>
+      <SafeAreaView className="flex-1 justify-center items-center bg-[#0d0d0d] p-5">
         <ActivityIndicator size="large" color="#008D80" />
-        <Text style={parentStyles.loadingText}>Carregando detecções...</Text>
+        <Text className="mt-2.5 text-base text-white font-nunito">Carregando detecções...</Text>
       </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <SafeAreaView style={parentStyles.container} className="border-t border-gray-700">
+      <SafeAreaView className="flex-1 bg-[#0d0d0d] border-t border-gray-700">
         <View className="w-full px-4 pt-4">
           <View className="rounded-md items-start">
-            <Text
-              style={{
-                color: "#FFFFFF",
-                fontSize: 24,
-                fontFamily: "Poppins-Bold",
-              }}
-            >
+            <Text className="text-white text-2xl font-poppinsBold">
               Meu Histórico
             </Text>
           </View>
@@ -169,7 +208,7 @@ export default function MinhasDeteccoesScreen({
         <FlatList
           data={[]}
           renderItem={() => null}
-          contentContainerStyle={parentStyles.listContentContainer}
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 10, paddingTop: 10, paddingBottom: 120 }}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
@@ -179,8 +218,10 @@ export default function MinhasDeteccoesScreen({
             />
           }
           ListEmptyComponent={
-            <View style={parentStyles.emptyContainer}>
-              <Text style={parentStyles.errorText}>Erro ao carregar: {error}</Text>
+            <View className="justify-center items-center py-10 min-h-[300px]">
+              <Text className="text-base text-[#FF6B6B] text-center font-nunito">
+                Erro ao carregar: {error}
+              </Text>
             </View>
           }
         />
@@ -189,24 +230,15 @@ export default function MinhasDeteccoesScreen({
   }
 
   return (
-    <SafeAreaView
-      style={parentStyles.container}
-      className="border-t border-gray-700"
-    >
+    <SafeAreaView className="flex-1 bg-[#0d0d0d] border-t border-gray-700">
       <View className="w-full px-4 pt-4">
         <View className="rounded-md items-start">
-          <Text
-            style={{
-              color: "#FFFFFF",
-              fontSize: 24,
-              fontFamily: "Poppins-Bold",
-            }}
-          >
+          <Text className="text-white text-2xl font-poppinsBold">
             Meu Histórico
           </Text>
         </View>
       </View>
-      <View style={{ paddingHorizontal: 10, paddingTop: 10, zIndex: 1000 }}>
+      <View className="px-2.5 pt-2.5 z-[1000]">
         <DropDownPicker
           open={open}
           value={filterValue}
@@ -216,8 +248,8 @@ export default function MinhasDeteccoesScreen({
           setItems={setFilterItems}
           placeholder="Filtrar por status"
           theme="DARK"
-          style={parentStyles.dropdown}
-          dropDownContainerStyle={parentStyles.dropdownContainer}
+          style={{ backgroundColor: "#262626", borderColor: "#404040" }}
+          dropDownContainerStyle={{ backgroundColor: "#262626", borderColor: "#404040" }}
         />
       </View>
 
@@ -229,7 +261,7 @@ export default function MinhasDeteccoesScreen({
           />
         )}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={parentStyles.listContentContainer}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 10, paddingTop: 10, paddingBottom: 120 }}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -239,67 +271,34 @@ export default function MinhasDeteccoesScreen({
           />
         }
         ListEmptyComponent={
-          <View style={parentStyles.emptyContainer}>
-            <Text style={parentStyles.emptyText}>
-              {allDetections.length === 0 
+          <View className="justify-center items-center py-10 min-h-[300px]">
+            <Text className="text-base text-[#A0A0A0] text-center font-nunito">
+              {detections.length === 0 
                 ? "Nenhuma detecção encontrada." 
                 : "Nenhuma detecção encontrada para este filtro."}
             </Text>
           </View>
         }
+        onEndReached={loadMoreItems}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          isLoadingMore ? (
+            <View className="p-5 items-center">
+              <ActivityIndicator size="small" color="#008D80" />
+              <Text className="text-[#A0A0A0] mt-2 font-nunito">
+                Carregando mais...
+              </Text>
+            </View>
+          ) : null
+        }
+        // Otimizações de performance
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={5}
+        updateCellsBatchingPeriod={50}
+        windowSize={10}
+        initialNumToRender={10}
+        getItemLayout={getItemLayout}
       />
     </SafeAreaView>
   );
 }
-
-const parentStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#0d0d0d",
-  },
-  containerCentered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#0d0d0d",
-    padding: 20,
-  },
-  emptyContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 40,
-    minHeight: 300,
-  },
-  listContentContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 10,
-    paddingTop: 10,
-    paddingBottom: 120,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#A0A0A0",
-    textAlign: "center",
-    fontFamily: "Nunito-Regular",
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: "#FFFFFF",
-    fontFamily: "Nunito-Regular",
-  },
-  errorText: {
-    fontSize: 16,
-    color: "#FF6B6B",
-    textAlign: "center",
-    fontFamily: "Nunito-Regular",
-  },
-  dropdown: {
-    backgroundColor: "#262626",
-    borderColor: "#404040",
-  },
-  dropdownContainer: {
-    backgroundColor: "#262626",
-    borderColor: "#404040",
-  },
-});

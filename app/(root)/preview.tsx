@@ -9,6 +9,7 @@ import { Image } from "expo-image";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useAuth } from "../../context/AuthContext";
+import { useCoins } from "../../context/CoinsContext";
 import { LinearGradient } from "expo-linear-gradient";
 import Header from "../components/header";
 import { router } from "expo-router";
@@ -27,6 +28,7 @@ export default function Preview({
   jsonResult?: object | null;
 }) {
   const { signout } = useAuth();
+  const { refreshCoins } = useCoins();
   const { width, height } = Dimensions.get("window");
 
   const handleSend = () => {
@@ -64,6 +66,9 @@ export default function Preview({
           text1: "Sucesso! ✅",
           text2: "Sua foto foi analisada.",
         });
+        
+        // Atualizar as moedas no header
+        refreshCoins();
       })
       .catch((error) => {
         console.error("Error sending POST request in background:", error);

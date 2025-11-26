@@ -220,7 +220,7 @@ function getClassCounts(detectionPoints: any) {
   return defaultCounts;
 }
 
-export default function LixoItem({ itemData }: LixoItemProps) {
+function LixoItemComponent({ itemData }: LixoItemProps) {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [zoomModalVisible, setZoomModalVisible] = useState(false);
 
@@ -237,6 +237,7 @@ export default function LixoItem({ itemData }: LixoItemProps) {
   } | null>(null);
 
   const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
+  const [shouldLoadImage, setShouldLoadImage] = useState(false);
 
   const isNewFormatDetection = useMemo(
     () => isNewFormat(itemData.detection_points),
@@ -259,6 +260,7 @@ export default function LixoItem({ itemData }: LixoItemProps) {
     [itemData.detection_points]
   );
 
+  // Otimização: Carregar endereço apenas quando necessário
   useEffect(() => {
     if (itemData && itemData.latitude != null && itemData.longitude != null) {
       getAddressFromCoordinates(itemData.latitude, itemData.longitude).then(
@@ -268,8 +270,11 @@ export default function LixoItem({ itemData }: LixoItemProps) {
         }
       );
     }
+  }, [itemData.latitude, itemData.longitude]);
 
-    if (itemData.base64) {
+  // Otimização: Carregar dimensões da imagem apenas quando modal é aberto
+  useEffect(() => {
+    if (shouldLoadImage && itemData.base64 && !imageAspectRatio) {
       const uri = `data:image/jpeg;base64,${itemData.base64}`;
       Image.getSize(
         uri,
@@ -279,7 +284,14 @@ export default function LixoItem({ itemData }: LixoItemProps) {
         () => setImageAspectRatio(1)
       );
     }
-  }, [itemData]);
+  }, [shouldLoadImage, itemData.base64, imageAspectRatio]);
+
+  // Trigger para carregar imagem quando modal é aberto
+  useEffect(() => {
+    if (mostrarModal && !shouldLoadImage) {
+      setShouldLoadImage(true);
+    }
+  }, [mostrarModal, shouldLoadImage]);
 
   if (!itemData) {
     return (
@@ -624,3 +636,12 @@ export default function LixoItem({ itemData }: LixoItemProps) {
     </View>
   );
 }
+
+// Otimização: Memorizar componente para evitar re-renders desnecessários
+const LixoItem = React.memo(LixoItemComponent, (prevProps, nextProps) => {
+  // Apenas re-renderizar se o ID ou status mudarem
+  return prevProps.itemData.id === nextProps.itemData.id &&
+         prevProps.itemData.status === nextProps.itemData.status;
+});
+
+export default LixoItem;
